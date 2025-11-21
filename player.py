@@ -5,7 +5,7 @@ class Player():
         # Nom du joueur
         self.nom = nom
         # La pièce où se trouve actuellement le joueur (sera définie plus tard)
-        self.piece = None
+        self.current_room = None
         # Inventaire du joueur (objets collectés etc )
         self.inventaire = []            # exemple : ["tournevis", "éclair"]
 
@@ -29,17 +29,17 @@ class Player():
             return False
 
         # Vérifie si la direction existe dans les exits
-        if direction not in self.piece.exits:
+        if direction not in self.current_room.exits:
             print("\nDirection inconnue ! (N/S/E/O)\n")
             return False
 
-        prochaine_piece = self.piece.exits[direction]
+        next_room = self.current_room.exits[direction]
 
-        if prochaine_piece is None:
+        if next_room is None:
             print("\nAucune porte dans cette direction !\n")
             return False
 
         # Déplacement effectif
-        self.piece = prochaine_piece
-        print(self.piece.get_long_description())
+        self.current_room = next_room
+        print(self.current_room.get_long_description())
         return True
