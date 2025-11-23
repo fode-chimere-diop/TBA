@@ -1,5 +1,3 @@
-# Define the Room class.
-
 class Room:
 
     # Define the constructor. 
@@ -29,18 +27,18 @@ class Room:
     # Retourne une chaîne listant les sorties disponibles A
     def get_exit_string(self):
         exit_string = "Sorties : "
-        first = True
-        for ex in ['N', 'E', 'S', 'O']:  # ordre lisible
-            target = self.exits.get(ex, None)
-            if target is not None:
-                if not first:
-                    exit_string += ", "
-                exit_string += ex
-                first = False
-        if first:  # aucune sortie trouvée
-            exit_string += "aucune"
+        sorties=[]
+        for ex in ['N', 'E', 'S', 'O']:  
+           if self.exits.get(ex) is not None:
+              sorties.append(ex)
+
+        if sorties:
+          exit_string += ", ".join(sorties)
+        else:
+          exit_string += "aucune"
+
         return exit_string
 
     # Return a long description of this room including exits.
     def get_long_description(self):
-        return f"\nVous êtes {self.description}\n\n{self.get_exit_string()}\n"
+       return f"\nVous êtes {self.description}\n\n{self.get_exit_string()}\n"

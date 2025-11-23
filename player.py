@@ -1,4 +1,4 @@
-# Classe représentant le joueur
+# Classe représentant le joueur bon
 class Player():
 
     def __init__(self, nom):
@@ -24,7 +24,7 @@ class Player():
         direction = direction.upper()
 
         # Vérifie si la pièce actuelle existe
-        if self.piece is None:
+        if self.current_room is None:
             print("\nErreur : le joueur n'est dans aucune salle.\n")
             return False
 
