@@ -93,7 +93,7 @@ class Actions:
         
         # Set the finished attribute of the game object to True.
         player = game.player
-        msg = f"\nMerci {player.name} d'avoir joué. Au revoir.\n"
+        msg = f"\nMerci {player.nom} d'avoir joué. Au revoir.\n"
         print(msg)
         game.finished = True
         return True
