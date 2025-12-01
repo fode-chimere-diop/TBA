@@ -57,4 +57,12 @@ class Player():
         # On affiche les descriptions dans l'ordre de visite.
         for room in self.history:
             s += f" - {room.description}\n"
-        return s 
+        return s
+    def get_inventory(self):
+        if not self.inventaire:
+            return "Votre inventaire est vide."
+    
+        texte = "Vous possédez :\n"
+        for item in self.inventaire:
+            texte += f"    - {item}\n"
+        return texte
