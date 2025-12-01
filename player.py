@@ -14,6 +14,7 @@ class Player():
         self.nord = 0                  # compteur pour savoir s'il essaie d'aller au Nord alors que l'étage est verrouillé
         self.eclair_choco = False      # pas eclair pour le moment
         self.tournevis = False         # pas de tournevis pour le moment
+        self.history = [] #ajouter pour historique 
 
     # Déplace le joueur dans la direction demandée
     def move(self, direction):
@@ -38,8 +39,22 @@ class Player():
         if next_room is None:
             print("\nAucune porte dans cette direction !\n")
             return False
-
+        # On utilise bien la méthode append() de la liste.
+        self.history.append(self.current_room) #ajouter pour l'historique
         # Déplacement effectif
         self.current_room = next_room
         print(self.current_room.get_long_description())
         return True
+    def get_history(self): #ajouter pour l'historique
+        """
+        Retourne une chaîne de caractères représentant les pièces déjà visitées
+        (celles que le joueur a quittées).
+        """
+        if not self.history:
+            return "\nVous n'avez pas encore visité d'autres pièces.\n"
+
+        s = "\nVous avez déjà visité les pièces suivantes:\n"
+        # On affiche les descriptions dans l'ordre de visite.
+        for room in self.history:
+            s += f" - {room.description}\n"
+        return s 

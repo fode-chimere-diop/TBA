@@ -54,9 +54,21 @@ class Actions:
             return False
 
         # Get the direction from the list of words.
-        direction = list_of_words[1]
-        # Move the player in the direction specified by the parameter.
+        direction = list_of_words[1].lower() 
+        if direction in ("n", "nord"): # condition pour go Nord ou go N 
+            direction = "N"
+        elif direction in ("s", "sud"):
+            direction = "S"
+        elif direction in ("e", "est"):
+            direction = "E"
+        elif direction in ("o", "ouest"):
+            direction = "O"
+        else:
+            print(f"\nDirection '{list_of_words[1]}' non reconnue.\n")
+            return False
+        # Move the player in the direction specified by the parameter. 
         player.move(direction)
+
         return True
 
     def quit(game, list_of_words, number_of_parameters):
@@ -130,10 +142,55 @@ class Actions:
             command_word = list_of_words[0]
             print(MSG0.format(command_word=command_word))
             return False
-        
         # Print the list of available commands.
         print("\nVoici les commandes disponibles:")
         for command in game.commands.values():
             print("\t- " + str(command))
         print()
+        return True
+      # 🔹 Nouvelle action : afficher l'historique sur commande
+    def history(game, list_of_words, number_of_parameters): #ajouter pour l'historique
+        """
+        Affiche l'historique des pièces déjà visitées.
+        """
+        l = len(list_of_words)
+        # Pas de paramètre attendu
+        if l != number_of_parameters + 1:
+            command_word = list_of_words[0]
+            print(MSG0.format(command_word=command_word))
+            return False
+
+        print(game.player.get_history())
+        return True
+    def back(game, list_of_words, number_of_parameters): #ajouter pour le back 
+        """
+    Revenir à la pièce précédente.
+    Impossible si aucune pièce n'a encore été visitée.
+        """
+        player = game.player
+        l = len(list_of_words)
+
+        # La commande back ne prend aucun paramètre
+        if l != number_of_parameters + 1:
+            command_word = list_of_words[0]
+            print(MSG0.format(command_word=command_word))
+            return False
+
+        # Vérifier si retour possible
+        if len(player.history) == 0:
+            print("\nImpossible de revenir en arrière : vous n'avez pas encore bougé.\n")
+            return False
+
+        # Retirer la dernière salle visitée
+        previous_room = player.history.pop()
+
+        # Mise à jour de la salle courante
+        player.current_room = previous_room
+
+        # Affichage de la nouvelle salle
+        print(player.current_room.get_long_description())
+
+        # Affichage de l'historique mis à jour
+        print(player.get_history())
+
         return True

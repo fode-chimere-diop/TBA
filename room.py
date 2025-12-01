@@ -28,7 +28,7 @@ class Room:
     def get_exit_string(self):
         exit_string = "Sorties : "
         sorties=[]
-        for ex in ['N', 'E', 'S', 'O']:  
+        for ex in ['N', 'E', 'S', 'O']:  # ordre lisible
            if self.exits.get(ex) is not None:
               sorties.append(ex)
 
@@ -41,4 +41,4 @@ class Room:
 
     # Return a long description of this room including exits.
     def get_long_description(self):
-       return f"\nVous êtes {self.description}\n\n{self.get_exit_string()}\n"
+       return f"\nVous êtes {self.description}\n\n{self.get_exit_string()}\n" 

@@ -28,13 +28,19 @@ class Game:
 
         go = Command("go", " <direction> : se déplacer dans une direction cardinale (N, E, S, O)", Actions.go, 1)
         self.commands["go"] = go
+
+        history_cmd = Command("history", " : afficher l'historique des pièces visitées", Actions.history, 0)
+        self.commands["history"] = history_cmd #ajouter pour l'historique
+
+        back_cmd = Command("back", " : revenir à la pièce précédente", Actions.back, 0)
+        self.commands["back"] = back_cmd #ajouter pour back
         
         # Setup rooms
         # Niveau 1
         hall_0 = Room("hall_0", "dans le hall du rez-de-chaussée")
         #je vais mettre le texte ici
         self.rooms.append(hall_0)
-        boulangerie = Room("boulangerie", "dans la boulangerie\n==========================================\nBIENVENUE A LA BOULANGERIE\n")
+        boulangerie = Room("boulangerie", "dans la boulangerie")
         #trouver une solution pour eviter trop de \n
         self.rooms.append(boulangerie)
         salle_du_garde = Room("salle_du_garde", "")
@@ -115,14 +121,16 @@ class Game:
 
     # Process the command entered by the player
     def process_command(self, command_string) -> None:
+        if command_string.strip() == "":
+           return
 
         list_of_words = command_string.split(" ")
         command_word = list_of_words[0]
 
-        if command_word not in self.commands.keys():
-            print(f"{command_word}")
-        else:
-            command = self.commands[command_word]
+        if command_word not in self.commands.keys(): 
+            print(f"\nCommande '{command_word}' non reconnue. Entrez 'help' pour voir la liste des commandes disponibles.\n") 
+        else: 
+            command = self.commands[command_word] 
             command.action(self, list_of_words, command.number_of_parameters)
 
 
@@ -196,15 +204,6 @@ class Game:
         input("\nAppuie sur [ENTRER] pour entrer dans le hall du rez-de-chaussée...")
         print()
 
-        #maintenant que le joueur existe, on lui donne la salle de départ
-        print("==========================================")
-        print("                ETAGE 0: HALL             ")
-        print("Tu pénètres dans le hall du rez-de-chaussée.")
-        print("L’air est lourd, presque silencieux…")
-        print("Comme si la Tour elle-même observait chacun de tes pas.")
-        print("Le premier défi t’attend quelque part ici.")
-        print("Ouvre l’œil… c’est ici que commence la chasse au Croissant d’Or.")
-        print("==========================================")
         self.player.current_room = self.start_room
 
         print(self.player.current_room.get_long_description())
