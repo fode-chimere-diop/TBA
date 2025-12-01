@@ -178,7 +178,7 @@ class Actions:
 
         # Vérifier si retour possible
         if len(player.history) == 0:
-            print("\nImpossible de revenir en arrière : vous n'avez pas encore bougé.\n")
+            print("\nVous ne pouvez plus reculer davantage : impossible de revenir en arrière.\n")
             return False
 
         # Retirer la dernière salle visitée
