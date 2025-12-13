@@ -44,9 +44,9 @@ class Game:
         boulangerie = Room("boulangerie", "dans la boulangerie")
         #trouver une solution pour eviter trop de \n
         self.rooms.append(boulangerie)
-        salle_du_garde = Room("salle_du_garde", "")
+        salle_du_garde = Room("salle_du_garde", "dans la salle du garde")
         self.rooms.append(salle_du_garde)
-        local_technique = Room("local_technique", "")
+        local_technique = Room("local_technique", "dans le local technique")
         self.rooms.append(local_technique)
 
         # Niveau 2
@@ -105,6 +105,22 @@ class Game:
 
         #ON DÉFINIT ICI la salle de départ du joueur
         self.start_room = hall_0
+        #inventaire
+        eclair = Item("eclair", "un délicieux éclair au chocolat",0.12)
+        tournevis = Item("tournevis", "un tournevis utile", 0.01 )
+
+        boulangerie.inventaire.append(eclair)
+        local_technique.inventaire.append(tournevis)
+        #pour l'inventaire
+        inventory_cmd = Command("inventory", " : afficher votre inventaire", Actions.inventory, 0)
+        self.commands["inventory"] = inventory_cmd
+
+        # pour le look
+
+        look_cmd = Command("look", " : observer la pièce et voir les objets", Actions.look, 0)
+        self.commands["look"] = look_cmd
+        take_cmd = Command("take", " <nom_item> : prendre un objet dans la pièce", Actions.take, 1)
+        self.commands["take"] = take_cmd
 
 
 

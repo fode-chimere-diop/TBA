@@ -194,3 +194,85 @@ class Actions:
         print(player.get_history())
 
         return True
+    # pour le look
+
+    def look(game, list_of_words, number_of_parameters):
+        """
+    Affiche la description de la pièce où se trouve le joueur
+    ainsi que les objets présents dans cette pièce.
+        """
+
+    # Vérifier qu'il n'y a pas de paramètre supplémentaire
+        if len(list_of_words) != number_of_parameters + 1:
+            command_word = list_of_words[0]
+            print(f"Commande incorrecte : {command_word}")
+            return False
+
+        room = game.player.current_room
+        if room is None:
+            print("\nVous n'êtes dans aucune pièce.\n")
+            return False
+
+    #description de la pièce
+        print(room.get_long_description())
+
+    #affichage des items
+        print(room.get_inventory())
+
+        return True
+#pour pouvoir prendre l'objet
+    def take(game, list_of_words, number_of_parameters):
+        """
+    Permet de prendre un objet dans la pièce et de le mettre dans l'inventaire du joueur.
+    Syntaxe : take <nom_item>
+        """
+
+    # Vérifie le nombre de paramètres
+        if len(list_of_words) != number_of_parameters + 1:
+            print(f"Commande incorrecte : utilisez 'take <nom_item>'")
+            return False
+
+        item_name = list_of_words[1].lower()
+        room = game.player.current_room
+
+        if not room.inventaire:
+            print("Il n'y a aucun objet à prendre ici.")
+            return False
+
+    # Cherche l'objet dans l'inventaire de la pièce
+        for item in room.inventaire:
+            if item.nom.lower() == item_name:
+            # Ajoute à l'inventaire du joueur
+                game.player.inventaire.append(item)
+            # Retire de la pièce
+                room.inventaire.remove(item)
+            # Mets à jour l'état du joueur si besoin
+                if item.nom.lower() == "eclair":
+                    game.player.eclair_choco = True
+                elif item.nom.lower() == "tournevis":
+                    game.player.tournevis = True
+                print(f"Vous avez pris : {item.nom}")
+                return True
+
+    # Si l'objet n'a pas été trouvé
+        print(f"L'objet '{item_name}' n'est pas dans cette pièce.")
+        return False
+    #pour l'inventaire
+    def inventory(game, list_of_words, number_of_parameters):
+        """
+    Affiche l'inventaire du joueur.
+    Syntaxe : inventory
+        """
+        if len(list_of_words) != number_of_parameters + 1:
+            print("Commande incorrecte : utilisez 'inventory'")
+            return False
+
+        if not game.player.inventaire:
+            print("Votre inventaire est vide.")
+            return True
+
+        print("Vous possédez :")
+        for item in game.player.inventaire:
+            print(f" - {item.nom} : {item.description} ({item.poids} kg)")
+        return True
+

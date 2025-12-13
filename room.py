@@ -5,7 +5,7 @@ class Room:
         self.name = name
         self.description = description
         self.exits = {}
-        self.inventory = [] # ajouter A
+        self.inventaire =[] # ajouter INVENTAIRE
     
     # Define the get_exit method.
     def get_exit(self, direction):
@@ -41,13 +41,24 @@ class Room:
         return exit_string
 
     # Return a long description of this room including exits.
+    #def get_long_description(self):
+       #return f"\nVous êtes {self.description}\n\n{self.get_exit_string()}\n" 
+  
     def get_long_description(self):
-       return f"\nVous êtes {self.description}\n\n{self.get_exit_string()}\n" 
-    def get_inventory(self): #ajouter A
-        if not self.inventory:
-            return "Il n'y a rien ici."
-    
-        texte = "La pièce contient :\n"
-        for item in self.inventory:
-            texte += f"    - {item}\n"
-        return texte
+        """
+        Retourne la description de la pièce et ses sorties,
+        mais PAS les objets (inventaire) !
+        """
+        txt = f"\nVous êtes {self.description}\n\n"
+        txt += self.get_exit_string() + "\n"
+        return txt
+    #pour inventaire 
+
+    def get_inventory(self):
+        if len(self.inventaire) == 0:
+            return "Il n'y a rien ici.\n"
+
+        txt = "La pièce contient :\n"
+        for item in self.inventaire:
+            txt += f" - {item.nom} : {item.description}\n"
+        return txt

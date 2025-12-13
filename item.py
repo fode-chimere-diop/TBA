@@ -6,4 +6,4 @@ class Item:
         self.poids=poids
     def __str__(self):
         
-        return f"{self.name} : {self.description} ({self.weight} kg)" 
+        return f"{self.nom} : {self.description} ({self.poids} kg)" 
