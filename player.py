@@ -15,6 +15,8 @@ class Player():
         self.eclair_choco = False      # pas eclair pour le moment
         self.tournevis = False         # pas de tournevis pour le moment
         self.history = [] #ajouter pour historique 
+        #ajouter pour limiter le nombre d'objet 
+        self.max_weight = 10   # capacité maximale (ex: 10)
 
     # Déplace le joueur dans la direction demandée
     def move(self, direction):
@@ -66,3 +68,24 @@ class Player():
         for item in self.inventaire:
             texte += f"    - {item}\n"
         return texte
+    #pour voir
+    def check(self):
+        """
+    Affiche le contenu de l'inventaire du joueur
+        """
+        if len(self.inventaire) == 0:
+            return "Votre inventaire est vide.\n"
+
+        txt = "Vous possédez :\n"
+        for item in self.inventaire:
+            txt += f" - {item}\n"
+        return txt
+#pour la limite du poids
+    def current_weight(self):
+        """
+    Calcule le poids total de l'inventaire
+        """
+        total = 0
+        for item in self.inventaire:
+            total += item.weight
+        return total

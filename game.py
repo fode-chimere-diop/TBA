@@ -116,12 +116,16 @@ class Game:
         self.commands["inventory"] = inventory_cmd
 
         # pour le look
-
         look_cmd = Command("look", " : observer la pièce et voir les objets", Actions.look, 0)
         self.commands["look"] = look_cmd
         take_cmd = Command("take", " <nom_item> : prendre un objet dans la pièce", Actions.take, 1)
         self.commands["take"] = take_cmd
-
+        #pour le drop
+        drop_cmd = Command("drop", " <item> : reposer un objet", Actions.drop, 1)
+        self.commands["drop"] = drop_cmd
+        #pour check 
+        check_cmd = Command("check"," : afficher l'inventaire du joueur",Actions.check,0)
+        self.commands["check"] = check_cmd
 
 
     # Play the game

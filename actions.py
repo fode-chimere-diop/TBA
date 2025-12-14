@@ -229,11 +229,12 @@ class Actions:
 
     # Vérifie le nombre de paramètres
         if len(list_of_words) != number_of_parameters + 1:
-            print(f"Commande incorrecte : utilisez 'take <nom_item>'")
+            print("Commande incorrecte : utilisez 'take <nom_item>'")
             return False
 
         item_name = list_of_words[1].lower()
-        room = game.player.current_room
+        player = game.player
+        room = player.current_room
 
         if not room.inventaire:
             print("Il n'y a aucun objet à prendre ici.")
@@ -242,21 +243,36 @@ class Actions:
     # Cherche l'objet dans l'inventaire de la pièce
         for item in room.inventaire:
             if item.nom.lower() == item_name:
+
+            #VÉRIFICATION DU POIDS
+                poids_actuel = player.current_weight()
+                if poids_actuel + item.poids > player.max_weight:
+                    print(
+                        f"Impossible de prendre {item.nom} : "
+                        f"poids maximal dépassé "
+                        f"({poids_actuel}/{player.max_weight})"
+                    )
+                    return False
+
             # Ajoute à l'inventaire du joueur
-                game.player.inventaire.append(item)
+                player.inventaire.append(item)
+
             # Retire de la pièce
                 room.inventaire.remove(item)
+
             # Mets à jour l'état du joueur si besoin
                 if item.nom.lower() == "eclair":
-                    game.player.eclair_choco = True
+                    player.eclair_choco = True
                 elif item.nom.lower() == "tournevis":
-                    game.player.tournevis = True
+                    player.tournevis = True
+
                 print(f"Vous avez pris : {item.nom}")
                 return True
 
     # Si l'objet n'a pas été trouvé
         print(f"L'objet '{item_name}' n'est pas dans cette pièce.")
         return False
+
     #pour l'inventaire
     def inventory(game, list_of_words, number_of_parameters):
         """
@@ -275,4 +291,51 @@ class Actions:
         for item in game.player.inventaire:
             print(f" - {item.nom} : {item.description} ({item.poids} kg)")
         return True
+    def drop(game, list_of_words, number_of_parameters):
+        """
+    Repose un item de l'inventaire du joueur dans la pièce actuelle.
+    Syntaxe : drop <nom_item>
+        """
+    # Vérification du nombre de paramètres
+        if len(list_of_words) != number_of_parameters + 1:
+            print("Utilisation : drop <item>")
+            return False
+
+        player = game.player
+        room = player.current_room
+        item_name = list_of_words[1].lower()
+
+    # Cherche l'item dans l'inventaire du joueur
+        item_to_drop = None
+        for item in player.inventaire:
+            if item.nom.lower() == item_name:
+                item_to_drop = item
+                break
+
+        # Si l'item n'est pas dans l'inventaire
+        if item_to_drop is None:
+            print(f"Vous n'avez pas '{item_name}' dans votre inventaire.")
+            return False
+
+        # Déposer l'item
+        player.inventaire.remove(item_to_drop)
+        room.inventaire.append(item_to_drop)
+
+        print(f"Vous avez reposé {item_to_drop.nom}.")
+        return True
+    def check(game, list_of_words, number_of_parameters):
+        """
+    Affiche l'inventaire du joueur
+        """
+
+    # check ne prend aucun paramètre
+        if len(list_of_words) != number_of_parameters + 1:
+            print("Utilisation : check")
+            return False
+
+        player = game.player
+        print(player.check())
+        return True
+
+
 
