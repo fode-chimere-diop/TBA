@@ -6,6 +6,7 @@ from player import Player
 from item import Item
 from command import Command
 from actions import Actions
+from character import Character
 
 class Game:
 
@@ -16,6 +17,9 @@ class Game:
         self.commands = {}
         self.player = None
         self.start_room = None  #  on crée une variable pour la pièce de départ
+        ###########deplcement########
+        #self.characters = []
+        #############################
     
     # Setup the game
     def setup(self):
@@ -34,7 +38,30 @@ class Game:
         self.commands["history"] = history_cmd #ajouter pour l'historique
 
         back_cmd = Command("back", " : revenir à la pièce précédente", Actions.back, 0)
-        self.commands["back"] = back_cmd #ajouter pour back
+        self.commands["back"] = back_cmd #ajouter pour back 
+          #pour l'inventaire
+
+        inventory_cmd = Command("inventory", " : afficher votre inventaire", Actions.inventory, 0)
+        self.commands["inventory"] = inventory_cmd
+
+        # pour le look
+        look_cmd = Command("look", " : observer la pièce et voir les objets", Actions.look, 0)
+        self.commands["look"] = look_cmd
+
+        take_cmd = Command("take", " <nom_item> : prendre un objet dans la pièce", Actions.take, 1)
+        self.commands["take"] = take_cmd
+        #pour le drop
+
+        drop_cmd = Command("drop", " <item> : reposer un objet", Actions.drop, 1)
+        self.commands["drop"] = drop_cmd
+        #pour check 
+
+        check_cmd = Command("check"," : afficher l'inventaire du joueur",Actions.check,0)
+        self.commands["check"] = check_cmd
+
+        #pour parler avec les pnj
+        talk_cmd = Command("talk", " <nom> : parler à un personnage présent", Actions.talk, 1)
+        self.commands["talk"] = talk_cmd
         
         # Setup rooms
         # Niveau 1
@@ -111,22 +138,17 @@ class Game:
 
         boulangerie.inventaire.append(eclair)
         local_technique.inventaire.append(tournevis)
-        #pour l'inventaire
-        inventory_cmd = Command("inventory", " : afficher votre inventaire", Actions.inventory, 0)
-        self.commands["inventory"] = inventory_cmd
+    #ajout pnj
+        garde = Character("garde ","Un garde sévère qui surveille les lieux",salle_du_garde, ["ici je suis le garde que voulez-vous"])
+        salle_du_garde.characters[garde.name] = garde
 
-        # pour le look
-        look_cmd = Command("look", " : observer la pièce et voir les objets", Actions.look, 0)
-        self.commands["look"] = look_cmd
-        take_cmd = Command("take", " <nom_item> : prendre un objet dans la pièce", Actions.take, 1)
-        self.commands["take"] = take_cmd
-        #pour le drop
-        drop_cmd = Command("drop", " <item> : reposer un objet", Actions.drop, 1)
-        self.commands["drop"] = drop_cmd
-        #pour check 
-        check_cmd = Command("check"," : afficher l'inventaire du joueur",Actions.check,0)
-        self.commands["check"] = check_cmd
-
+        boulanger = Character("boulanger", "Un boulanger souriant couvert de farine",boulangerie,["Bonjour !", "Essayez mon éclair au chocolat !"])
+        boulangerie.characters[boulanger.name]= boulanger
+    
+#########################deplacement#######################################################
+        #self.characters.append(boulanger)
+        #self.characters.append(garde)
+#########################################################################
 
     # Play the game
     def play(self):
@@ -153,6 +175,13 @@ class Game:
         else: 
             command = self.commands[command_word] 
             command.action(self, list_of_words, command.number_of_parameters)
+        ################deplacement####################
+        #for character in self.characters:
+            #moved = character.move()
+            #if moved:
+               # print(f"{character.name} se déplace dans une autre pièce.")
+        #####################################################################""
+
 
 
     # Print the welcome message

@@ -336,6 +336,29 @@ class Actions:
         player = game.player
         print(player.check())
         return True
+    #interagir avec les pnj
+    def talk(game, list_of_words, number_of_parameters):
+        """
+    talk <someone> : fait parler un PNJ présent dans la pièce.
+        """
+        l = len(list_of_words)
+        if l != number_of_parameters + 1:
+            command_word = list_of_words[0]
+            print(MSG1.format(command_word=command_word))
+            return False
+
+        player = game.player
+        room = player.current_room
+        target = list_of_words[1].strip().lower()  # on compare en minuscules
+
+    # Chercher le PNJ dans la pièce (room.characters est un dict)
+        for name, character in room.characters.items():
+            if name.lower() == target:
+                character.get_msg()
+                return True
+
+        print(f"\nIl n'y a pas de '{list_of_words[1]}' ici.\n")
+        return False
 
 
 
