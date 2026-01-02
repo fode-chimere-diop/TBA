@@ -7,6 +7,7 @@ from item import Item
 from command import Command
 from actions import Actions
 from character import Character
+from quest import Quest
 
 class Game:
 
@@ -62,6 +63,18 @@ class Game:
         #pour parler avec les pnj
         talk_cmd = Command("talk", " <nom> : parler à un personnage présent", Actions.talk, 1)
         self.commands["talk"] = talk_cmd
+        #quests
+        quests = Command("quests" , " : afficher la liste des quêtes" , Actions.quests, 0)
+        self.commands["quests"] = quests
+        #quest
+        quest = Command("quest" , " <titre> : afficher les détails d'une quête" , Actions.quest, 1)
+        self.commands["quest"] = quest
+        #activate
+        activate = Command("activate" , " <titre> : activer une quête " , Actions.activate, 1)
+        self.commands["activate"] = activate
+        #rewards
+        rewards = Command("rewards" , " : afficher vos récompenses " , Actions.rewards, 0)
+        self.commands["rewards"] = rewards
         
         # Setup rooms
         # Niveau 1
@@ -149,6 +162,8 @@ class Game:
         #self.characters.append(boulanger)
         #self.characters.append(garde)
 #########################################################################
+    
+    
 
     # Play the game
     def play(self):
