@@ -216,7 +216,10 @@ class Game:
         """
     Victoire : le garde a reçu l'éclair
         """
-        if "eclair : un délicieux éclair au chocolat (0.12 kg)" in self.player.inventaire and self.player.current_room.name == "salle_du_garde":
+        
+        a_un_eclair = any(item.name == "eclair" for item in self.player.inventaire)
+
+        if a_un_eclair and self.player.current_room.name == "salle_du_garde":
             print("\n🎉 VICTOIRE !")
             print("Le garde a reçu l'éclair.")
             print("L'étage suivant est débloqué.")
