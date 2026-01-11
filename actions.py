@@ -242,8 +242,12 @@ class Actions:
 
     # Cherche l'objet dans l'inventaire de la pièce
         for item in room.inventaire:
+            # 🔒 Bloquer l'éclair si la machine n'est pas réparée
+            if item.nom.lower() == "eclair" and not game.machine_reparee:
+                print("La machine est cassée. Impossible de prendre l'éclair.")
+                return False
             if item.nom.lower() == item_name:
-
+            
             #VÉRIFICATION DU POIDS
                 poids_actuel = player.current_weight()
                 if poids_actuel + item.poids > player.max_weight:
@@ -354,11 +358,66 @@ class Actions:
     # Chercher le PNJ dans la pièce (room.characters est un dict)
         for name, character in room.characters.items():
             if name.lower() == target:
-                character.get_msg()
-                return True
+                # PNJ : BOULANGER
+                if character.name.lower() == "boulanger":
+                    if player.tournevis:
+                        print("Vous utilisez le tournevis pour réparer la machine.")
+                        game.machine_reparee = True
+                        player.tournevis = False
+# retirer le tournevis de l'inventaire
+                        for item in player.inventaire:
+                             if item.nom.lower() == "tournevis":
+                                 player.inventaire.remove(item)
+                                 break
 
+                        print("La machine fonctionne ! Vous pouvez maintenant prendre un éclair.")
+                    else:
+                        print("La machine est cassée... Il me faut un tournevis.")
+                        return True
+
+            # PNJ : AUTRE
+                character.get_msg()
+                return True 
         print(f"\nIl n'y a pas de '{list_of_words[1]}' ici.\n")
         return False
+    #GIVE
+    @staticmethod
+    def give(game, list_of_words, number_of_parameters):
+        """
+    give <item> <personnage>
+        """
+        if len(list_of_words) != 3:
+            print("Utilisation : give <objet> <personnage>")
+            return False
+
+        item_name = list_of_words[1].lower()
+        target = list_of_words[2].lower()
+
+        player = game.player
+        room = player.current_room
+
+    # Vérifier que le PNJ est là
+        if target not in room.characters:
+            print(f"{target} n'est pas ici.")
+            return False
+
+    # Vérifier que le joueur a l'objet
+        for item in player.inventaire:
+            if item.nom.lower() == item_name:
+
+            # CAS DU GARDE
+                if target == "garde" and item_name == "eclair":
+                    player.inventaire.remove(item)
+                    game.eclair_donne_au_garde = True
+                    print("Le garde prend l’éclair et vous laisse passer.")
+                    return True
+
+                print(f"{target} ne veut pas de {item_name}.")
+                return False
+
+        print(f"Vous n'avez pas {item_name}.")
+        return False
+
 # ajout pour les quetes
     @staticmethod
     def quests(game, list_of_words, number_of_parameters):

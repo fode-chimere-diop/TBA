@@ -8,7 +8,8 @@ from command import Command
 from actions import Actions
 from character import Character
 from quest import Quest
-
+DEBUG = False        # AJOUTÉ
+TIME_LIMIT = 20     # AJOUTÉ (temps max)
 class Game:
 
     # Constructor
@@ -18,9 +19,13 @@ class Game:
         self.commands = {}
         self.player = None
         self.start_room = None  #  on crée une variable pour la pièce de départ
-        ###########deplcement########
+        ###########deplacement########
         #self.characters = []
         #############################
+        ############1_jeu################
+        self.machine_reparee = False
+        self.eclair_donne_au_garde = False
+        ################################
     
     # Setup the game
     def setup(self):
@@ -152,7 +157,7 @@ class Game:
         boulangerie.inventaire.append(eclair)
         local_technique.inventaire.append(tournevis)
     #ajout pnj
-        garde = Character("garde ","Un garde sévère qui surveille les lieux",salle_du_garde, ["ici je suis le garde que voulez-vous"])
+        garde = Character("garde","Un garde sévère qui surveille les lieux",salle_du_garde, ["ici je suis le garde que voulez-vous"])
         salle_du_garde.characters[garde.name] = garde
 
         boulanger = Character("boulanger", "Un boulanger souriant couvert de farine",boulangerie,["Bonjour !", "Essayez mon éclair au chocolat !"])
@@ -165,17 +170,28 @@ class Game:
     
     
 
-    # Play the game
     def play(self):
         self.setup()
         self.print_welcome()
 
-        # Loop until the game is finished
         while not self.finished:
-            self.process_command(input("> "))
+        # Le joueur entre une commande
+            command = input("> ")
+            self.process_command(command)
+        #nouveau
+            #if "eclair" in self.player.inventaire and self.player.current_room.name == "salle_du_garde":
+                #self.eclair_donne_au_garde = True
+                #self.player.inventaire.remove("eclair")
+                #print("\nVous avez donné l'éclair au garde.\n")
+        #Test de victoire
+            if self.win():
+                self.finished = True
+                break
 
-        return None
-
+        #  Test de défaite
+            if self.loose():
+                self.finished = True
+                break
 
     # Process the command entered by the player
     def process_command(self, command_string) -> None:
@@ -196,7 +212,26 @@ class Game:
             #if moved:
                # print(f"{character.name} se déplace dans une autre pièce.")
         #####################################################################""
+    def win(self):
+        """
+    Victoire : le garde a reçu l'éclair
+        """
+        if "eclair : un délicieux éclair au chocolat (0.12 kg)" in self.player.inventaire and self.player.current_room.name == "salle_du_garde":
+            print("\n🎉 VICTOIRE !")
+            print("Le garde a reçu l'éclair.")
+            print("L'étage suivant est débloqué.")
+            return True
+        return False
 
+    def loose(self):
+        """
+    Défaite : temps écoulé
+        """
+        if self.player.move_count >= TIME_LIMIT:
+            print("\n⏰ TEMPS ÉCOULÉ")
+            print("Tu n'as pas réparé la machine à temps.")
+            return True
+        return False
 
 
     # Print the welcome message

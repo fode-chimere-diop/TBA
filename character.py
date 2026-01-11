@@ -1,4 +1,4 @@
-import random
+import random # ajouter
 
 class Character:
     def __init__(self, name, description, current_room, msgs):
@@ -6,6 +6,7 @@ class Character:
         self.description = description
         self.current_room = current_room
         self.msgs = msgs
+        #self.fixed = False  # pour le boulanger (machine réparée)
         # Pour faire défiler les messages en boucle
         self._msgs_queue = list(msgs)  # copie
         self._msgs_done = []           # ceux déjà affichés
@@ -21,7 +22,7 @@ class Character:
         #"""
 
         # 1 chance sur 2 de ne pas bouger
-        #if random.choice([True, False]) is False:
+        #if not random.choice([True, False]):
             #return False
 
         # Récupérer les sorties possibles
@@ -55,3 +56,6 @@ class Character:
         self._msgs_done.append(msg)
 
         print(msg)
+    def talk(self, player):
+        for msg in self.msgs:
+            print(msg)
