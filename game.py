@@ -233,7 +233,17 @@ class Game:
                # print(f"{character.name} se déplace dans une autre pièce.")
         #####################################################################""
     def win(self):
+<<<<<<< HEAD
         if self.eclair_donne_au_garde:
+=======
+        """
+    Victoire : le garde a reçu l'éclair
+        """
+        
+        a_un_eclair = any(item.name == "eclair" for item in self.player.inventaire)
+
+        if a_un_eclair and self.player.current_room.name == "salle_du_garde":
+>>>>>>> 7df32bae7e4fccd270edc0cd636432348b65636d
             print("\n🎉 VICTOIRE !")
             print("Le garde a dégusté son éclair et vous laisse explorer le reste de la Tour.")
             print("Il vous glisse un papier dans la main : 'Vous en aurez besoin pour le sommet... C'est le chiffre 8.'")
