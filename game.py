@@ -80,6 +80,12 @@ class Game:
         #rewards
         rewards = Command("rewards" , " : afficher vos récompenses " , Actions.rewards, 0)
         self.commands["rewards"] = rewards
+        #give
+        give_cmd = Command("give", " <objet> <personnage> : donner un objet", Actions.give, 2)
+        self.commands["give"] = give_cmd
+        # quetes
+        quests_cmd = Command("quests", " : afficher les quêtes", Actions.quests, 0)
+        self.commands["quests"] = quests_cmd
         
         # Setup rooms
         # Niveau 1
@@ -167,12 +173,26 @@ class Game:
         #self.characters.append(boulanger)
         #self.characters.append(garde)
 #########################################################################
-    
+    def setup_quests(self):
+        # 1. Créer la quête
+        self.quete_garde = Quest("Le Garde Gourmand", "Donnez un éclair au garde.", ["donner avec eclair"], "Code: 8")
+        
+        # 2. L'ajouter au joueur
+        self.player.quest_manager.add_quest(self.quete_garde)
+        
+        # 3. L'ACTIVER (Très important !)
+        self.player.quest_manager.activate_quest("Le Garde Gourmand")
+
+        # Faire pareil pour le boulanger
+        self.quete_boulanger = Quest("Réparation Urgente", "Donnez le tournevis.", ["donner avec tournevis"], "Accès éclair")
+        self.player.quest_manager.add_quest(self.quete_boulanger)
+        self.player.quest_manager.activate_quest("Réparation Urgente")
     
 
     def play(self):
         self.setup()
         self.print_welcome()
+        self.setup_quests()
 
         while not self.finished:
         # Le joueur entre une commande
@@ -213,13 +233,11 @@ class Game:
                # print(f"{character.name} se déplace dans une autre pièce.")
         #####################################################################""
     def win(self):
-        """
-    Victoire : le garde a reçu l'éclair
-        """
-        if "eclair : un délicieux éclair au chocolat (0.12 kg)" in self.player.inventaire and self.player.current_room.name == "salle_du_garde":
+        if self.eclair_donne_au_garde:
             print("\n🎉 VICTOIRE !")
-            print("Le garde a reçu l'éclair.")
-            print("L'étage suivant est débloqué.")
+            print("Le garde a dégusté son éclair et vous laisse explorer le reste de la Tour.")
+            print("Il vous glisse un papier dans la main : 'Vous en aurez besoin pour le sommet... C'est le chiffre 8.'")
+            #print("\n--- CODE FINAL : _ 8 _ _ ---") # Indice visuel pour le joueur
             return True
         return False
 

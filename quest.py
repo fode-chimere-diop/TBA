@@ -127,9 +127,9 @@ class Quest:
         if not self.is_completed:
             self.is_completed = True
             print(f"\n🏆 Quête terminée: {self.title}")
-            if self.reward:
-                print(f"🎁 Récompense: {self.reward}")
-                if player:
+            #if self.reward:
+                #print(f"🎁 Récompense: {self.reward}")
+            if player and self.reward:
                     player.add_reward(self.reward)
             print()
 
@@ -695,9 +695,10 @@ class QuestManager:
         📋 Liste des quêtes:
         ❓ Display Quest (Non activée)
         <BLANKLINE>
-        """
+        """   
         if not self.quests:
-            print("\nAucune quête disponible.\n")
+            print("\nDEBUG : La liste self.quests est vide !") # Pour t'aider à trouver l'erreur
+            print("Aucune quête disponible.\n")
             return
 
         print("\n📋 Liste des quêtes:")

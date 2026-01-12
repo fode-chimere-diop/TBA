@@ -124,7 +124,7 @@ class Player():
         """
         if reward and reward not in self.rewards:
             self.rewards.append(reward)
-            print(f"\n🎁 Vous avez obtenu: {reward}\n")
+            #print(f"\n🎁 Vous avez obtenu: {reward}\n")
 
 
     def show_rewards(self):

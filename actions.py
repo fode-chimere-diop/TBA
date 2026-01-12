@@ -341,9 +341,10 @@ class Actions:
         print(player.check())
         return True
     #interagir avec les pnj
+    @staticmethod
     def talk(game, list_of_words, number_of_parameters):
         """
-    talk <someone> : fait parler un PNJ présent dans la pièce.
+        talk <someone> : fait parler un PNJ présent dans la pièce.
         """
         l = len(list_of_words)
         if l != number_of_parameters + 1:
@@ -353,38 +354,38 @@ class Actions:
 
         player = game.player
         room = player.current_room
-        target = list_of_words[1].strip().lower()  # on compare en minuscules
+        target = list_of_words[1].strip().lower()
 
-    # Chercher le PNJ dans la pièce (room.characters est un dict)
         for name, character in room.characters.items():
             if name.lower() == target:
-                # PNJ : BOULANGER
-                if character.name.lower() == "boulanger":
-                    if player.tournevis:
-                        print("Vous utilisez le tournevis pour réparer la machine.")
-                        game.machine_reparee = True
-                        player.tournevis = False
-# retirer le tournevis de l'inventaire
-                        for item in player.inventaire:
-                             if item.nom.lower() == "tournevis":
-                                 player.inventaire.remove(item)
-                                 break
+                # On valide l'objectif "parler" dans le QuestManager (si besoin)
+                game.player.quest_manager.check_action_objectives("parler", character.name)
 
-                        print("La machine fonctionne ! Vous pouvez maintenant prendre un éclair.")
+                # Dialogue du GARDE (Indice seulement)
+                if character.name.lower() == "garde":
+                    print("\nGarde : 'Halte ! Je ne laisse passer personne sans une autorisation... ou un bon éclair au chocolat.'")
+                    return True
+
+                # Dialogue du BOULANGER (Indice seulement)
+                elif character.name.lower() == "boulanger":
+                    if game.machine_reparee:
+                        print("\nBoulanger : 'Merci encore pour votre aide ! Mes éclairs sont à votre disposition.'")
                     else:
-                        print("La machine est cassée... Il me faut un tournevis.")
-                        return True
+                        print("\nBoulanger : 'Quelle catastrophe... Ma machine est en panne. Il me faudrait un tournevis pour la réparer.'")
+                    return True
 
-            # PNJ : AUTRE
+                # Autres PNJ (messages en boucle)
                 character.get_msg()
                 return True 
+
         print(f"\nIl n'y a pas de '{list_of_words[1]}' ici.\n")
         return False
-    #GIVE
+
+    # --- MÉTHODE GIVE (Action réelle) ---
     @staticmethod
     def give(game, list_of_words, number_of_parameters):
         """
-    give <item> <personnage>
+        Syntaxe : give <objet> <personnage>
         """
         if len(list_of_words) != 3:
             print("Utilisation : give <objet> <personnage>")
@@ -392,30 +393,109 @@ class Actions:
 
         item_name = list_of_words[1].lower()
         target = list_of_words[2].lower()
-
         player = game.player
         room = player.current_room
 
-    # Vérifier que le PNJ est là
-        if target not in room.characters:
+        # 1. Vérifier que le PNJ est bien présent
+        if target not in [n.lower() for n in room.characters.keys()]:
             print(f"{target} n'est pas ici.")
             return False
 
-    # Vérifier que le joueur a l'objet
+        # 2. Chercher l'objet dans l'inventaire du joueur
+        item_to_give = None
         for item in player.inventaire:
             if item.nom.lower() == item_name:
+                item_to_give = item
+                break
 
-            # CAS DU GARDE
-                if target == "garde" and item_name == "eclair":
-                    player.inventaire.remove(item)
-                    game.eclair_donne_au_garde = True
-                    print("Le garde prend l’éclair et vous laisse passer.")
-                    return True
+        if item_to_give is None:
+            print(f"Vous n'avez pas de '{item_name}' dans votre inventaire.")
+            return False
 
-                print(f"{target} ne veut pas de {item_name}.")
-                return False
+        # --- LOGIQUE DES ÉCHANGES ---
 
-        print(f"Vous n'avez pas {item_name}.")
+        # CAS DU GARDE (L'Éclair)
+        if target == "garde" and item_name == "eclair":
+            print(f"\nVous donnez l'éclair au garde.")
+            print("Garde : 'Oh merci ! Il a l'air délicieux. Allez, je vous laisse passer !'")
+            print("Le garde vous glisse un secret : 'Retenez bien ce chiffre pour le code final : 8'")
+            
+            player.inventaire.remove(item_to_give)
+            game.eclair_donne_au_garde = True # Déclenche la victoire (win)
+            player.quest_manager.check_action_objectives("donner", "eclair")
+            return True
+
+        # CAS DU BOULANGER (Le Tournevis)
+        if target == "boulanger" and item_name == "tournevis":
+            print(f"\nVous donnez le tournevis au boulanger.")
+            print("Boulanger : 'Merci ! Je répare la machine tout de suite. Voilà, elle fonctionne !'")
+            
+            player.inventaire.remove(item_to_give)
+            game.machine_reparee = True # Débloque la prise de l'éclair (take)
+            player.quest_manager.check_action_objectives("donner", "tournevis")
+            return True
+
+        print(f"{target} ne veut pas de cet objet.")
+        return False
+    #GIVE
+    @staticmethod
+    def give(game, list_of_words, number_of_parameters):
+        """
+        Syntaxe : give <objet> <personnage>
+        """
+        if len(list_of_words) != 3:
+            print("Utilisation : give <objet> <personnage>")
+            return False
+
+        item_name = list_of_words[1].lower()
+        target = list_of_words[2].lower()
+        player = game.player
+        room = player.current_room
+
+        # 1. Vérifier que le PNJ est bien présent dans la pièce
+        if target not in [n.lower() for n in room.characters.keys()]:
+            print(f"{target} n'est pas ici.")
+            return False
+
+        # 2. Chercher l'objet dans l'inventaire du joueur
+        item_to_give = None
+        for item in player.inventaire:
+            if item.nom.lower() == item_name:
+                item_to_give = item
+                break
+
+        if item_to_give is None:
+            print(f"Vous n'avez pas de '{item_name}' dans votre inventaire.")
+            return False
+
+        # --- LOGIQUE SPÉCIFIQUE POUR LES ÉCHANGES ---
+
+        # CAS DU GARDE (L'Éclair)
+        if target == "garde" and item_name == "eclair":
+            print(f"\nVous donnez l'éclair au garde.")
+            print("Garde : 'Oh merci ! Il a l'air délicieux. Vous pouvez passer !'")
+            
+            player.inventaire.remove(item_to_give)
+            game.eclair_donne_au_garde = True # Déclenche la victoire
+            
+            # Validation de la quête
+            player.quest_manager.check_action_objectives("donner", "eclair")
+            return True
+
+        # CAS DU BOULANGER (Le Tournevis)
+        if target == "boulanger" and item_name == "tournevis":
+            print(f"\nVous donnez le tournevis au boulanger.")
+            print("Boulanger : 'Merci ! Je vais pouvoir réparer la machine à éclairs.'")
+            
+            player.inventaire.remove(item_to_give)
+            game.machine_reparee = True # Débloque l'item éclair dans la pièce
+            
+            # Validation d'une éventuelle quête
+            player.quest_manager.check_action_objectives("donner", "tournevis")
+            return True
+
+        # Si ce n'est pas le bon objet ou le bon PNJ
+        print(f"{target} ne sait pas quoi faire de cet objet.")
         return False
 
 # ajout pour les quetes
