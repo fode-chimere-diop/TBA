@@ -100,7 +100,7 @@ class Player():
         """
         total = 0
         for item in self.inventaire:
-            total += item.weight
+            total += item.poids
         return total
     def add_reward(self, reward):
         """

@@ -373,6 +373,22 @@ class Actions:
                     else:
                         print("\nBoulanger : 'Quelle catastrophe... Ma machine est en panne. Il me faudrait un tournevis pour la réparer.'")
                     return True
+                # Dialogue des autres PNJ avec énigmes (niveau 2)
+                #dialogue Mr_red
+                if character.name.lower() == "mr_red":
+                    game.mr_red_enigme_donnee = True
+                    character.get_msg()
+                    return True
+                #dialogue  Mr White
+                if character.name.lower() == "mr_white":
+                    game.mr_white_enigme_donnee = True
+                    character.get_msg()
+                    return True
+                #dialogue Mr blue
+                if character.name.lower() == "mr_blue":
+                    game.mr_blue_enigme_donnee = True
+                    character.get_msg()
+                    return True
 
                 # Autres PNJ (messages en boucle)
                 character.get_msg()
@@ -434,15 +450,57 @@ class Actions:
             game.machine_reparee = True # Débloque la prise de l'éclair (take)
             player.quest_manager.check_action_objectives("donner", "tournevis")
             return True
+        #  MR_RED — Énigme du drapeau
+        if target == "mr_red":
+            if item_name in ("drapeau_sénégal", "drapeau_senegal"):
+                print("\nMr_Red : 'Correct.'")
+
+                player.inventaire.remove(item_to_give)
+                game.mr_red_enigme_resolue = True
+
+                player.quest_manager.check_action_objectives("donner", "drapeau_sénégal")
+                game.try_spawn_france_pnj()
+                return True
+            else:
+                print("Mr_Red : 'Non. Ce n'est pas le bon drapeau.'")
+                return False
+        # ⚪ MR_WHITE — Énigme Turquie
+        if target == "mr_white":
+            if item_name == "drapeau_turquie":
+                print("\nMr_White : 'Exact. Tu as l'esprit vif.'")
+        
+                player.inventaire.remove(item_to_give)
+                game.mr_white_enigme_resolue = True
+
+                player.quest_manager.check_action_objectives("donner", "drapeau_Turquie")
+                game.try_spawn_france_pnj()
+                return True
+            else:
+                print("Mr_White : 'Faux. Ce n'est pas le bon drapeau.'")
+                return False
+        # 🔵 MR_BLUE — Énigme Mexique
+        if target == "mr_blue":
+            if item_name == "drapeau_mexique":
+                print("\nMr_Blue : 'Exact. Tu as bien observé.'")
+                print("Mr_Blue : 'Voici ton indice : chiffre 1.'")
+
+                player.inventaire.remove(item_to_give)
+                game.mr_blue_enigme_resolue = True
+
+                player.quest_manager.check_action_objectives("donner", "drapeau_Mexique")
+                game.try_spawn_france_pnj()
+                return True
+            else:
+                print("Mr_Blue : 'Non. Ce n'est pas le bon drapeau.'")
+                return False
 
         print(f"{target} ne veut pas de cet objet.")
         return False
+    
     #GIVE
-    @staticmethod
-    def give(game, list_of_words, number_of_parameters):
-        """
+    #@staticmethod
+    """def give(game, list_of_words, number_of_parameters):
         Syntaxe : give <objet> <personnage>
-        """
         if len(list_of_words) != 3:
             print("Utilisation : give <objet> <personnage>")
             return False
@@ -497,7 +555,7 @@ class Actions:
         # Si ce n'est pas le bon objet ou le bon PNJ
         print(f"{target} ne sait pas quoi faire de cet objet.")
         return False
-
+    """
 # ajout pour les quetes
     @staticmethod
     def quests(game, list_of_words, number_of_parameters):
@@ -692,6 +750,62 @@ class Actions:
         # Show all rewards
         game.player.show_rewards()
         return True
+    @staticmethod
+    def colors(game, list_of_words, number_of_parameters):
+        """
+    Mini-jeu: proposer un ordre de 5 couleurs.
+    Usage: colors R B J V O
+    Retour: nombre de couleurs bien placées.
+        """
+    # Vérif nombre de paramètres (colors + 5)
+        if len(list_of_words) != number_of_parameters + 1:
+            print("\nUtilisation : colors R B J V O\n")
+            return False
+        room = game.player.current_room
+        if room is None:
+            print("\nVous n'êtes dans aucune pièce.\n")
+            return False
+
+    # (Optionnel) restreindre à la terrasse
+        if room.name not in ("terrasse_1", "terrasse_2"):
+            print("\nLe jeu des couleurs se fait sur la terrasse.\n")
+            return False
+
+    # Code attendu (doit exister dans Game.__init__)
+        code = [c.upper() for c in game.couleurs_code]   # ex: ["R","B","J","V","O"]
+
+    # Proposition du joueur
+        guess = [w.upper() for w in list_of_words[1:]]
+
+        allowed = {"R", "B", "J", "V", "O"}
+
+    # Vérif: lettres autorisées
+        for c in guess:
+            if c not in allowed:
+                print(f"\nCouleur '{c}' invalide. Utilise seulement : R B J V O\n")
+                return False
+
+    # Vérif: 5 couleurs différentes (optionnel mais conseillé)
+        if len(set(guess)) != 5:
+            print("\nTu dois donner 5 couleurs différentes (pas de doublons).\n")
+            return False
+
+    # Comptage des bonnes réponses BIEN PLACÉES
+        good = 0
+        for i in range(5):
+            if guess[i] == code[i]:
+                good += 1
+
+    # Résultat
+        if good == 5:
+            print("\n🎉 BRAVO ! Tu as trouvé le bon ordre !")
+            print("Le PNJ te laisse passer vers le niveau 4.\n")
+            game.acces_niveau_4 = True
+            return True
+
+        print(f"\n❌ Pas encore. Il y a {good} bonne(s) réponse(s) bien placée(s).\n")
+        return True
+
 
 
 
