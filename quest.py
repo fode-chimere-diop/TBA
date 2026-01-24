@@ -533,7 +533,9 @@ class QuestManager:
                 self.active_quests.remove(quest)
 
 
-    def check_action_objectives(self, action, target=None):
+    # Ajoute 'item=None' à la fin des parenthèses
+    def check_action_objectives(self, action, target, item=None):
+        
         """
         Check all active quests for action-related objectives.
         
@@ -560,10 +562,21 @@ class QuestManager:
         >>> len(manager.active_quests)
         0
         """
-        for quest in self.active_quests[:]:
-            quest.check_action_objective(action, target, self.player)
-            if quest.is_completed:
-                self.active_quests.remove(quest)
+        # On parcourt les quêtes actives
+        for quest in self.active_quests:
+            # On vérifie chaque objectif de la quête
+            for objective in quest.objectives:
+                # Exemple : "poser plat restaurant"
+                if action == "poser" and target == "restaurant":
+                    if item and item.nom.lower() == "plat":
+                        quest.complete_objective(objective)
+                
+                # Exemple : "donner avec eclair"
+                if action == "donner" and target == item.nom.lower():
+                    quest.complete_objective(objective)
+        
+        # On vérifie si des quêtes sont terminées
+        self.check_quest_completion()
 
 
     def check_counter_objectives(self, counter_name, current_count):
@@ -738,3 +751,10 @@ class QuestManager:
             print(quest.get_details(current_counts))
         else:
             print(f"\nQuête '{quest_title}' non trouvée.\n")
+    def check_quest_completion(self):
+        """
+        Vérifie et retire les quêtes terminées de la liste active.
+        """
+        for quest in self.active_quests[:]:
+            if quest.is_completed:
+                self.active_quests.remove(quest)

@@ -39,7 +39,7 @@ class Player():
 
         # Vérifie si la direction existe dans les exits
         if direction not in self.current_room.exits:
-            print("\nDirection inconnue ! (N/S/E/O)\n")
+            print("\nDirection inconnue ! (N/S/E/O/U)\n")
             return False
 
         next_room = self.current_room.exits[direction]
@@ -52,6 +52,29 @@ class Player():
         # Déplacement effectif
         self.current_room = next_room
         print(self.current_room.get_long_description())
+        if self.current_room.name == "salle_secréte":
+            # On supprime la sortie Sud pour bloquer le retour
+            if "S" in self.current_room.exits:
+                self.current_room.exits["S"] = None
+            print("\n" + "!"*50)
+            print("🚨 CLAC ! La trappe se verrouille derrière vous.")
+            print("Vous êtes au sommet. Il n'y a plus aucun moyen de redescendre.")
+            print("Le trésor est à portée de main... si vous avez le code.")
+            print("!"*50 + "\n")
+            self.quest_manager.activate_quest("Le Secret du Sommet")
+
+        # 🎯 Activation des quêtes de niveau 2 quand on arrive dans hall_1
+        if self.current_room.name == "hall_1":
+            qm = self.quest_manager
+
+            qm.activate_quest("Énigme de Mr_Red")
+            qm.activate_quest("Énigme de Mr_White")
+            qm.activate_quest("Énigme de Mr_Blue")
+        # Dans player.py, méthode move
+        if self.current_room.name == "terrasse_2" or self.current_room.name == "restaurant":
+            self.quest_manager.activate_quest("Le Protocole du Sommet")
+        
+
           # Check room visit objectives
         self.quest_manager.check_room_objectives(self.current_room.name)
 
@@ -73,25 +96,28 @@ class Player():
         for room in self.history:
             s += f" - {room.description}\n"
         return s
+    # Dans player.py
     def get_inventory(self):
         if not self.inventaire:
             return "Votre inventaire est vide."
     
         texte = "Vous possédez :\n"
         for item in self.inventaire:
-            texte += f"    - {item}\n"
+        # ✅ AJOUTE .nom ICI pour que ce soit clair
+            texte += f"    - {item.nom} : {item.description}\n" 
         return texte
     #pour voir
     def check(self):
         """
-    Affiche le contenu de l'inventaire du joueur
+        Affiche le contenu de l'inventaire du joueur de façon claire.
         """
         if len(self.inventaire) == 0:
             return "Votre inventaire est vide.\n"
 
         txt = "Vous possédez :\n"
         for item in self.inventaire:
-            txt += f" - {item}\n"
+            # ✅ On affiche le NOM et la DESCRIPTION pour que ce soit clair
+            txt += f" - {item.nom} : {item.description} ({item.poids} kg)\n"
         return txt
 #pour la limite du poids
     def current_weight(self):

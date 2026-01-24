@@ -29,7 +29,7 @@ class Room:
     def get_exit_string(self):
         exit_string = "Sorties : "
         sorties=[]
-        for ex in ['N', 'E', 'S', 'O']:  # ordre lisible
+        for ex in ['N', 'E', 'S', 'O', 'U']:  # ordre lisible
            if self.exits.get(ex) is not None:
               sorties.append(ex)
 
@@ -63,4 +63,4 @@ class Room:
             txt += f" - {item.nom} : {item.description}\n"
         for character in self.characters.values():
             txt +=f" - {character}\n"
-        return txt
+        return txt 

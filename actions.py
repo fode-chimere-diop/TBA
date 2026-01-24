@@ -63,6 +63,9 @@ class Actions:
             direction = "E"
         elif direction in ("o", "ouest"):
             direction = "O"
+        elif direction in ("u", "up"):
+            direction = "U"
+
         else:
             print(f"\nDirection '{list_of_words[1]}' non reconnue.\n")
             return False
@@ -218,65 +221,53 @@ class Actions:
 
     #affichage des items
         print(room.get_inventory())
-
+        if room.name == "restaurant":
+            print("\n💡Indice : Il n'y a personne ici,")
+            print("mais la table n°4 semble attendre quelque chose... ")
+            print("Essayez de POSER (drop) le plat.")
+        if room.name == "salle_secréte":
+            print("\n🔒 UN COFFRE MYSTÉRIEUX : Il porte l'emblème de Gustave Eiffel.")
+            print("💡 Action : Utilisez la commande 'unlock <code>' pour tenter votre chance.")
+            print(f"⚠️ Attention : Il ne vous reste que {game.unlock_attempts} essais avant que l'alarme ne sonne.")
         return True
 #pour pouvoir prendre l'objet
+    @staticmethod
     def take(game, list_of_words, number_of_parameters):
-        """
-    Permet de prendre un objet dans la pièce et de le mettre dans l'inventaire du joueur.
-    Syntaxe : take <nom_item>
-        """
-
-    # Vérifie le nombre de paramètres
         if len(list_of_words) != number_of_parameters + 1:
-            print("Commande incorrecte : utilisez 'take <nom_item>'")
+            print("Utilisation : take <nom_item>")
             return False
 
         item_name = list_of_words[1].lower()
         player = game.player
         room = player.current_room
 
-        if not room.inventaire:
-            print("Il n'y a aucun objet à prendre ici.")
-            return False
-
-    # Cherche l'objet dans l'inventaire de la pièce
         for item in room.inventaire:
-            # 🔒 Bloquer l'éclair si la machine n'est pas réparée
-            if item.nom.lower() == "eclair" and not game.machine_reparee:
-                print("La machine est cassée. Impossible de prendre l'éclair.")
-                return False
             if item.nom.lower() == item_name:
-            
-            #VÉRIFICATION DU POIDS
-                poids_actuel = player.current_weight()
-                if poids_actuel + item.poids > player.max_weight:
-                    print(
-                        f"Impossible de prendre {item.nom} : "
-                        f"poids maximal dépassé "
-                        f"({poids_actuel}/{player.max_weight})"
-                    )
+                
+                # --- ÉNIGME : BLOQUER SI PAS DE NOTE ---
+                if item_name == "glaçons":
+                    a_la_note = any(i.nom.lower() == "note" for i in player.inventaire)
+                    if not a_la_note:
+                        print("\n❓ Vous voyez des glaçons, mais sans indice, vous ne savez pas quoi en faire.")
+                        print("Allez sur la terrasse pour chercher un indice !")
+                        return False
+                
+                # --- MACHINE À ÉCLAIR ---
+                if item_name == "eclair" and not game.machine_reparee:
+                    print("La machine est cassée. L'éclair n'est pas encore prêt !")
                     return False
 
-            # Ajoute à l'inventaire du joueur
+                # Vérification poids et ajout
+                if player.current_weight() + item.poids > player.max_weight:
+                    print("Trop lourd !")
+                    return False
+
                 player.inventaire.append(item)
-
-            # Retire de la pièce
                 room.inventaire.remove(item)
-
-            # Mets à jour l'état du joueur si besoin
-                if item.nom.lower() == "eclair":
-                    player.eclair_choco = True
-                elif item.nom.lower() == "tournevis":
-                    player.tournevis = True
-
                 print(f"Vous avez pris : {item.nom}")
                 return True
-
-    # Si l'objet n'a pas été trouvé
-        print(f"L'objet '{item_name}' n'est pas dans cette pièce.")
         return False
-
+    
     #pour l'inventaire
     def inventory(game, list_of_words, number_of_parameters):
         """
@@ -310,23 +301,27 @@ class Actions:
         item_name = list_of_words[1].lower()
 
     # Cherche l'item dans l'inventaire du joueur
-        item_to_drop = None
-        for item in player.inventaire:
-            if item.nom.lower() == item_name:
-                item_to_drop = item
-                break
-
-        # Si l'item n'est pas dans l'inventaire
-        if item_to_drop is None:
-            print(f"Vous n'avez pas '{item_name}' dans votre inventaire.")
+        item_to_drop = next((i for i in player.inventaire if i.nom.lower() == item_name), None)
+        if not item_to_drop:
+            print("Vous n'avez pas cet objet.")
             return False
 
-        # Déposer l'item
-        player.inventaire.remove(item_to_drop)
-        room.inventaire.append(item_to_drop)
+        if player.current_room.name == "restaurant" and item_name == "plat":
+            print("✨🍽️ En le posant, vous voyez un papier collé sous l'assiette : 'Le dernier chiffre est le 1'.")
+            # ✅ Correction du Crash (envoie bien les 3 arguments)
+            game.player.quest_manager.check_action_objectives("poser", "restaurant", item_to_drop)
+            
+            # ✅ Déblocage de la sortie Up
+            for r in game.rooms:
+                if r.name == "salle_secréte":
+                    player.current_room.exits["U"] = r
+            print("✨ Un escalier vers le sommet (U) vient d'apparaître !")
 
-        print(f"Vous avez reposé {item_to_drop.nom}.")
+        player.inventaire.remove(item_to_drop)
+        player.current_room.inventaire.append(item_to_drop)
         return True
+
+    
     def check(game, list_of_words, number_of_parameters):
         """
     Affiche l'inventaire du joueur
@@ -435,7 +430,7 @@ class Actions:
             print(f"\nVous donnez l'éclair au garde.")
             print("Garde : 'Oh merci ! Il a l'air délicieux. Allez, je vous laisse passer !'")
             print("Le garde vous glisse un secret : 'Retenez bien ce chiffre pour le code final : 8'")
-            
+            game.rooms[0].exits["U"] = game.hall_1
             player.inventaire.remove(item_to_give)
             game.eclair_donne_au_garde = True # Déclenche la victoire (win)
             player.quest_manager.check_action_objectives("donner", "eclair")
@@ -463,7 +458,19 @@ class Actions:
                 return True
             else:
                 print("Mr_Red : 'Non. Ce n'est pas le bon drapeau.'")
+                game.wrong_flags += 1
+                if game.wrong_flags >= 3:
+                    print("\n" + "!"*50)
+                    print("💀 GAME OVER : ERREUR DIPLOMATIQUE !")
+                    print("Vous avez trop offensé les ambassadeurs.")
+                    print("La sécurité vous escorte hors de la Tour Eiffel.")
+                    print("!"*50)
+                    game.finished = True # 🚨 C'est cette ligne qui arrête le jeu
+                    return False
+                else:
+                    print(f"⚠️ Attention : {3 - game.wrong_flags} essais restants avant l'expulsion.")
                 return False
+
         # ⚪ MR_WHITE — Énigme Turquie
         if target == "mr_white":
             if item_name == "drapeau_turquie":
@@ -477,12 +484,23 @@ class Actions:
                 return True
             else:
                 print("Mr_White : 'Faux. Ce n'est pas le bon drapeau.'")
+                game.wrong_flags += 1
+                if game.wrong_flags >= 3:
+                    print("\n" + "!"*50)
+                    print("💀 GAME OVER : ERREUR DIPLOMATIQUE !")
+                    print("Vous avez trop offensé les ambassadeurs.")
+                    print("La sécurité vous escorte hors de la Tour Eiffel.")
+                    print("!"*50)
+                    game.finished = True # 🚨 C'est cette ligne qui arrête le jeu
+                    return False
+                else:
+                    print(f"⚠️ Attention : {3 - game.wrong_flags} essais restants avant l'expulsion.")
                 return False
+
         # 🔵 MR_BLUE — Énigme Mexique
         if target == "mr_blue":
             if item_name == "drapeau_mexique":
                 print("\nMr_Blue : 'Exact. Tu as bien observé.'")
-                print("Mr_Blue : 'Voici ton indice : chiffre 1.'")
 
                 player.inventaire.remove(item_to_give)
                 game.mr_blue_enigme_resolue = True
@@ -492,10 +510,42 @@ class Actions:
                 return True
             else:
                 print("Mr_Blue : 'Non. Ce n'est pas le bon drapeau.'")
+                game.wrong_flags += 1
+                if game.wrong_flags >= 3:
+                    print("\n" + "!"*50)
+                    print("💀 GAME OVER : ERREUR DIPLOMATIQUE !")
+                    print("Vous avez trop offensé les ambassadeurs.")
+                    print("La sécurité vous escorte hors de la Tour Eiffel.")
+                    print("!"*50)
+                    game.finished = True # 🚨 C'est cette ligne qui arrête le jeu
+                    return False
+                else:
+                    print(f"⚠️ Attention : {3 - game.wrong_flags} essais restants avant l'expulsion.")
                 return False
 
-        print(f"{target} ne veut pas de cet objet.")
-        return False
+# ÉCHANGE 1 : Glaçons au Barman
+        if target == "barman" and item_name == "glaçons":
+            player.inventaire.remove(item_to_give)
+    # Tu dois créer l'objet physiquement ici
+            from item import Item
+            recompense = Item("bouteille", "Une bouteille d'élixir rare.", 0.5)
+            player.inventaire.append(recompense)
+            print("\n🧊 Barman : 'Parfait ! Voici votre bouteille d'élixir.'")
+            return True
+
+# ÉCHANGE 2 : Bouteille au Chef
+        if target == "chef" and item_name == "bouteille":
+            player.inventaire.remove(item_to_give)
+            from item import Item
+            recompense = Item("plat", "Le plat signature du chef.", 0.8)
+            player.inventaire.append(recompense)
+            print("\n🍳 Chef : 'Magnifique ! Voici le plat à poser au Restaurant !'")
+            return True
+        # Si le joueur essaie de donner le plat mais qu'il n'y a pas de PNJ
+        if item_name == "plat" and not room.characters:
+            print("\nIl n'y a personne à qui donner ce plat. Peut-être devriez-vous simplement le poser sur la table réservée ?")
+            return False
+
     
     #GIVE
     #@staticmethod
@@ -751,61 +801,126 @@ class Actions:
         game.player.show_rewards()
         return True
     @staticmethod
+    @staticmethod
     def colors(game, list_of_words, number_of_parameters):
         """
-    Mini-jeu: proposer un ordre de 5 couleurs.
-    Usage: colors R B J V O
-    Retour: nombre de couleurs bien placées.
+        Mini-jeu: proposer un ordre de 5 couleurs.
+        Usage: colors R B J V O
+        Retour: nombre de couleurs bien placées ou Game Over si trop d'essais.
         """
-    # Vérif nombre de paramètres (colors + 5)
+        # 1. Vérif nombre de paramètres (colors + 5)
         if len(list_of_words) != number_of_parameters + 1:
             print("\nUtilisation : colors R B J V O\n")
             return False
+
         room = game.player.current_room
         if room is None:
             print("\nVous n'êtes dans aucune pièce.\n")
             return False
 
-    # (Optionnel) restreindre à la terrasse
-        if room.name not in ("terrasse_1", "terrasse_2"):
-            print("\nLe jeu des couleurs se fait sur la terrasse.\n")
-            return False
+        # 2. Diminuer le nombre d'essais restants
+        game.couleurs_attempts -= 1
 
-    # Code attendu (doit exister dans Game.__init__)
+        # 3. Récupérer le code attendu et la proposition du joueur
         code = [c.upper() for c in game.couleurs_code]   # ex: ["R","B","J","V","O"]
-
-    # Proposition du joueur
         guess = [w.upper() for w in list_of_words[1:]]
-
         allowed = {"R", "B", "J", "V", "O"}
 
-    # Vérif: lettres autorisées
+        # 4. Vérifications (lettres autorisées et doublons)
         for c in guess:
             if c not in allowed:
                 print(f"\nCouleur '{c}' invalide. Utilise seulement : R B J V O\n")
                 return False
 
-    # Vérif: 5 couleurs différentes (optionnel mais conseillé)
         if len(set(guess)) != 5:
             print("\nTu dois donner 5 couleurs différentes (pas de doublons).\n")
             return False
 
-    # Comptage des bonnes réponses BIEN PLACÉES
+        # 5. Comptage des bonnes réponses BIEN PLACÉES
         good = 0
         for i in range(5):
             if guess[i] == code[i]:
                 good += 1
 
-    # Résultat
+        # 6. Gestion des résultats (Victoire ou Défaite)
         if good == 5:
-            print("\n🎉 BRAVO ! Tu as trouvé le bon ordre !")
-            print("Le PNJ te laisse passer vers le niveau 4.\n")
+            print("\n" + "="*50)
+            print("🎉 BRAVO ! Tu as trouvé le bon ordre !")
+            print("TU AS OBTENU LE CHIFFRE : 8")
+            print("Le PNJ te laisse passer vers le niveau 4.")
+            print("="*50 + "\n")
+            
+            # Déblocage de la sortie
+            target_room = next(r for r in game.rooms if r.name == "terrasse_2")
+            game.player.current_room.exits["N"] = target_room
             game.acces_niveau_4 = True
             return True
 
-        print(f"\n❌ Pas encore. Il y a {good} bonne(s) réponse(s) bien placée(s).\n")
+        # 7. Si ce n'est pas bon, vérifier s'il reste des essais
+        if game.couleurs_attempts > 0:
+            print(f"\n❌ Pas encore. Il y a {good} bonne(s) réponse(s) bien placée(s).")
+            print(f"⚠️ Attention : Il vous reste {game.couleurs_attempts} essais avant le verrouillage !\n")
+        else:
+            # 💀 CONDITION DE DÉFAITE NIVEAU 3
+            print("\n" + "!"*50)
+            print("💀 GAME OVER : SYSTÈME DE SÉCURITÉ ACTIVÉ !")
+            print("Vous avez échoué trop de fois à synchroniser les projecteurs.")
+            print("L'accès à la tour est définitivement verrouillé.")
+            print("!"*50)
+            game.finished = True
+            
         return True
+    
+    @staticmethod
+    def unlock(game, list_of_words, number_of_parameters):
+        player = game.player
+        
+        # Vérification du lieu
+        if player.current_room.name != "salle_secréte":
+            print("\nIl n'y a aucun coffre ici à ouvrir.")
+            return False
 
+        # Vérification des paramètres
+        if len(list_of_words) < 2:
+            print("\nUsage : unlock <combinaison>")
+            return False
 
+        choix = list_of_words[1]
 
+        # VICTOIRE
+        if choix == "1887":
+            print("\n" + "★"*50)
+            print("         ✨ L'HÉRITAGE D'EIFFEL EST À VOUS ✨")
+            print("         LE COFFRE S'OUVRE ENFIN : 1887")
+            print("" + "★"*50)
+            print("\nLe mécanisme tourne parfaitement. Le couvercle se soulève...")
+            print("Félicitations ! Vous avez trouvé le CROISSANT D'OR !")
+            game.finished = True
+            return True
 
+        # ÉCHEC : Gestion des essais et des indices
+        game.unlock_attempts -= 1
+        
+        if game.unlock_attempts > 0:
+            print(f"\n❌ Code incorrect ! Il vous reste {game.unlock_attempts} essais.")
+            
+            # Système d'indices progressifs sous forme d'énigmes
+            print("\n💡 Besoin d'un rappel ? Voici un indice sur les chiffres que vous avez croisés :")
+            
+            if game.unlock_attempts == 4:
+                print("Indice du Niveau 1 : 'Je suis le premier, l'unique, le début de tout.'")
+            elif game.unlock_attempts == 3:
+                print("Indice du Niveau 2 : 'Le nombre de pieds qui me soutiennent, multiplié par deux.'")
+            elif game.unlock_attempts == 2:
+                print("Indice du Niveau 3 : 'Deux anneaux entrelacés, ou l'infini mis debout.'")
+            elif game.unlock_attempts == 1:
+                print("Indice du Niveau 4 : 'Le nombre de jours dans une semaine.'")
+        else:
+            # DÉFAITE
+            print("\n" + "!"*50)
+            print("⚠️ ALARME DÉLENCHÉE ! Trop de tentatives infructueuses.")
+            print("Les gardes arrivent... Vous avez échoué à ouvrir le coffre.")
+            print("" + "!"*50)
+            game.finished = True
+
+        return True
