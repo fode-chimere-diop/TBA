@@ -182,10 +182,10 @@ class Game:
         restaurant.exits = {"N" :cuisine ,"E" : terrasse_2, "S" : None, "O" : bar, "U" : None}
         bar.exits = {"N" :None ,"E" : restaurant, "S" : None, "O" : None, "U" : None}
         cuisine.exits = {"N" :None ,"E" : None, "S" : restaurant, "O" : None, "U" : None}
-        salle_secréte.exits = {"N" :None ,"E" : None, "S" : cuisine, "O" : None, "U" : None}
+        salle_secréte.exits = {"N" :None ,"E" : None, "S" : None, "O" : None, "U" : None}
 
         #ON DÉFINIT ICI la salle de départ du joueur 
-        self.start_room = hall_0
+        self.start_room = salle_secréte      
         #inventaire 
         #niveau 1
         eclair = Item("eclair", "un délicieux éclair au chocolat",0.12)
@@ -242,7 +242,13 @@ class Game:
         Mr_Blue =Character("Mr_Blue", "Un homme mystérie ",pays_3,["Énigme : mon pays a un emblème au centre.","On y voit un rapace posé sur un cactus.","Le drapeau a 3 bandes verticales.","Donne-moi ce drapeau si tu veux avancer."])
         pays_3.characters[Mr_Blue.name]= Mr_Blue
 
-        self.pnj_france = Character("PNG","Un personnage mystérieux apparu après vos 3 victoires",self.hall_1,["PNG : 'Tu as résolu les 3 énigmes... dernière question !'","PNG : 'Je suis en Europe.'","PNG : 'Ma capitale est surnommée la ville lumière.'","PNG : 'Tape le nom de mon pays dans le terminal pour gagner.'"])
+        # On remplace "PNG" par "L'Historien" (ou le nom que tu as choisi)
+        self.pnj_france = Character("L'Historien", "Un personnage érudit apparu après vos 3 victoires", self.hall_1, [
+        "L'Historien : 'Tu as résolu les 3 énigmes... dernière question !'",
+        "L'Historien : 'Je suis en Europe.'",
+        "L'Historien : 'Ma capitale est surnommée la ville lumière.'",
+        "L'Historien : 'Tape le nom de mon pays dans le terminal pour gagner.'"
+        ])
 
         pnj_couleurs = Character("Couleurs","Un animateur qui bloque l'accès au niveau 4",terrasse_1,["Couleurs : 'Jeu des couleurs !'","Couleurs : 'Je te donne un ordre de 5 couleurs parmi : R B J V O.'","Couleurs : 'Pour jouer, tape : colors R B J V O (exemple)'","Couleurs : 'Je te dirai combien de couleurs sont bien placées.'"])
         terrasse_1.characters[pnj_couleurs.name] = pnj_couleurs
@@ -289,6 +295,10 @@ class Game:
         self.quete_finale = Quest("Le Secret du Sommet", "Trouvez la combinaison historique du coffre pour gagner.", ["unlock 1887"], "Croissant d'Or")
         self.player.quest_manager.add_quest(self.quete_finale)
         # Elle s'activera automatiquement quand le joueur atteindra le 5ème étage
+        self.player.quest_manager.activate_quest("Énigme de Mr_Red")
+        self.player.quest_manager.activate_quest("Énigme de Mr_White")
+        self.player.quest_manager.activate_quest("Énigme de Mr_Blue")
+        self.player.quest_manager.activate_quest("Le Protocole du Sommet")
     
 
     def play(self):
@@ -371,8 +381,8 @@ class Game:
         self.final_pnj_spawned = False
         self.france_riddle_unlocked = False
         # si jamais PNG était apparu, on l'enlève de hall_1
-        if self.hall_1 and "PNG" in self.hall_1.characters:
-            del self.hall_1.characters["PNG"]
+        if self.hall_1 and "L'Historien" in self.hall_1.characters:
+            del self.hall_1.characters["L'Historien"]
 
         # 3) Retirer tous les drapeaux de l’inventaire du joueur
         # (on remettra des nouveaux drapeaux dans les rooms)
@@ -451,7 +461,7 @@ class Game:
         # 3. Test de défaite pour le Niveau 4
         elif current_room_name in niveau_4:
             # Limite globale pour le niveau 4 (ex: 50 pas car c'est plus long)
-            if self.player.move_count >= 50:
+            if self.player.move_count >= 20:
                 print("\n" + "!"*40)
                 print("⏰ TEMPS ÉCOULÉ - NIVEAU 4")
                 print("Le service au restaurant est terminé.")

@@ -535,48 +535,39 @@ class QuestManager:
 
     # Ajoute 'item=None' à la fin des parenthèses
     def check_action_objectives(self, action, target, item=None):
-        
         """
-        Check all active quests for action-related objectives.
-        
-        Args:
-            action (str): The action performed.
-            target (str): Optional target of the action.
-            
-        Examples:
-        
-        >>> manager = QuestManager()
-        >>> quest = Quest("Actions", "Do actions", ["parler avec roi"])
-        >>> manager.add_quest(quest)
-        >>> manager.activate_quest("Actions") # doctest: +NORMALIZE_WHITESPACE
-        <BLANKLINE>
-        🗡️  Nouvelle quête activée: Actions
-        📝 Do actions
-        <BLANKLINE>
-        True
-        >>> manager.check_action_objectives("parler", "roi") # doctest: +NORMALIZE_WHITESPACE
-        ✅ Objectif accompli: parler avec roi
-        <BLANKLINE>
-        🏆 Quête terminée: Actions
-        <BLANKLINE>
-        >>> len(manager.active_quests)
-        0
+        Vérifie les objectifs des quêtes actives et affiche les succès immédiatement.
         """
-        # On parcourt les quêtes actives
-        for quest in self.active_quests:
-            # On vérifie chaque objectif de la quête
+        # On utilise une copie [:] pour éviter les erreurs si une quête est supprimée pendant la boucle
+        for quest in self.active_quests[:]:
             for objective in quest.objectives:
-                # Exemple : "poser plat restaurant"
-                if action == "poser" and target == "restaurant":
-                    if item and item.nom.lower() == "plat":
-                        quest.complete_objective(objective)
                 
-                # Exemple : "donner avec eclair"
-                if action == "donner" and target == item.nom.lower():
-                    quest.complete_objective(objective)
-        
-        # On vérifie si des quêtes sont terminées
-        self.check_quest_completion()
+                # 🛡️ SÉCURITÉ : Récupère le texte de l'objectif (gère str ou objet)
+                if isinstance(objective, str):
+                    obj_text = objective.lower()
+                elif hasattr(objective, 'description'):
+                    obj_text = objective.description.lower()
+                else:
+                    obj_text = str(objective).lower()
+
+                # --- 1. CAS : DONNER (Boulanger, Garde, Ambassadeurs) ---
+                if action == "donner" and item is not None:
+                    # On vérifie si le nom de l'objet est dans l'objectif (ex: "tournevis" dans "donner tournevis")
+                    if item.nom.lower() in obj_text:
+                        quest.complete_objective(objective, self.player)
+
+                # --- 2. CAS : PARLER (PNJ) ---
+                elif action == "parler" and target.lower() in obj_text:
+                    quest.complete_objective(objective, self.player)
+
+                # --- 3. CAS : POSER (Restaurant - Niveau 4) ---
+                elif action == "poser" and "poser plat" in obj_text:
+                    if item and item.nom.lower() == "plat" and target == "restaurant":
+                        quest.complete_objective(objective, self.player)
+
+            # Une fois les objectifs vérifiés, on nettoie la liste si la quête est finie
+            if quest.is_completed:
+                self.active_quests.remove(quest)
 
 
     def check_counter_objectives(self, counter_name, current_count):

@@ -413,11 +413,7 @@ class Actions:
             return False
 
         # 2. Chercher l'objet dans l'inventaire du joueur
-        item_to_give = None
-        for item in player.inventaire:
-            if item.nom.lower() == item_name:
-                item_to_give = item
-                break
+        item_to_give = next((i for i in player.inventaire if i.nom.lower() == item_name), None)
 
         if item_to_give is None:
             print(f"Vous n'avez pas de '{item_name}' dans votre inventaire.")
@@ -430,121 +426,96 @@ class Actions:
             print(f"\nVous donnez l'éclair au garde.")
             print("Garde : 'Oh merci ! Il a l'air délicieux. Allez, je vous laisse passer !'")
             print("Le garde vous glisse un secret : 'Retenez bien ce chiffre pour le code final : 8'")
+            
+            # ✅ On valide la quête d'abord
+            player.quest_manager.check_action_objectives("donner", target, item_to_give)
+            
+            # ✅ On met à jour le jeu et l'inventaire
             game.rooms[0].exits["U"] = game.hall_1
             player.inventaire.remove(item_to_give)
-            game.eclair_donne_au_garde = True # Déclenche la victoire (win)
-            player.quest_manager.check_action_objectives("donner", "eclair")
+            game.eclair_donne_au_garde = True
             return True
 
         # CAS DU BOULANGER (Le Tournevis)
-        if target == "boulanger" and item_name == "tournevis":
+        elif target == "boulanger" and item_name == "tournevis":
             print(f"\nVous donnez le tournevis au boulanger.")
             print("Boulanger : 'Merci ! Je répare la machine tout de suite. Voilà, elle fonctionne !'")
             
+            # ✅ On valide la quête d'abord
+            player.quest_manager.check_action_objectives("donner", target, item_to_give)
+            
             player.inventaire.remove(item_to_give)
-            game.machine_reparee = True # Débloque la prise de l'éclair (take)
-            player.quest_manager.check_action_objectives("donner", "tournevis")
+            game.machine_reparee = True
             return True
-        #  MR_RED — Énigme du drapeau
-        if target == "mr_red":
+
+        # MR_RED — Énigme du drapeau
+        elif target == "mr_red":
             if item_name in ("drapeau_sénégal", "drapeau_senegal"):
                 print("\nMr_Red : 'Correct.'")
-
+                # ✅ Validation immédiate
+                player.quest_manager.check_action_objectives("donner", target, item_to_give)
                 player.inventaire.remove(item_to_give)
                 game.mr_red_enigme_resolue = True
-
-                player.quest_manager.check_action_objectives("donner", "drapeau_sénégal")
                 game.try_spawn_france_pnj()
                 return True
             else:
-                print("Mr_Red : 'Non. Ce n'est pas le bon drapeau.'")
-                game.wrong_flags += 1
-                if game.wrong_flags >= 3:
-                    print("\n" + "!"*50)
-                    print("💀 GAME OVER : ERREUR DIPLOMATIQUE !")
-                    print("Vous avez trop offensé les ambassadeurs.")
-                    print("La sécurité vous escorte hors de la Tour Eiffel.")
-                    print("!"*50)
-                    game.finished = True # 🚨 C'est cette ligne qui arrête le jeu
-                    return False
-                else:
-                    print(f"⚠️ Attention : {3 - game.wrong_flags} essais restants avant l'expulsion.")
-                return False
+                return Actions._handle_wrong_flag(game)
 
-        # ⚪ MR_WHITE — Énigme Turquie
-        if target == "mr_white":
+        # MR_WHITE — Énigme Turquie
+        elif target == "mr_white":
             if item_name == "drapeau_turquie":
                 print("\nMr_White : 'Exact. Tu as l'esprit vif.'")
-        
+                # ✅ Validation immédiate
+                player.quest_manager.check_action_objectives("donner", target, item_to_give)
                 player.inventaire.remove(item_to_give)
                 game.mr_white_enigme_resolue = True
-
-                player.quest_manager.check_action_objectives("donner", "drapeau_Turquie")
                 game.try_spawn_france_pnj()
                 return True
             else:
-                print("Mr_White : 'Faux. Ce n'est pas le bon drapeau.'")
-                game.wrong_flags += 1
-                if game.wrong_flags >= 3:
-                    print("\n" + "!"*50)
-                    print("💀 GAME OVER : ERREUR DIPLOMATIQUE !")
-                    print("Vous avez trop offensé les ambassadeurs.")
-                    print("La sécurité vous escorte hors de la Tour Eiffel.")
-                    print("!"*50)
-                    game.finished = True # 🚨 C'est cette ligne qui arrête le jeu
-                    return False
-                else:
-                    print(f"⚠️ Attention : {3 - game.wrong_flags} essais restants avant l'expulsion.")
-                return False
+                return Actions._handle_wrong_flag(game)
 
-        # 🔵 MR_BLUE — Énigme Mexique
-        if target == "mr_blue":
+        # MR_BLUE — Énigme Mexique
+        elif target == "mr_blue":
             if item_name == "drapeau_mexique":
                 print("\nMr_Blue : 'Exact. Tu as bien observé.'")
-
+                # ✅ Validation immédiate
+                player.quest_manager.check_action_objectives("donner", target, item_to_give)
                 player.inventaire.remove(item_to_give)
                 game.mr_blue_enigme_resolue = True
-
-                player.quest_manager.check_action_objectives("donner", "drapeau_Mexique")
                 game.try_spawn_france_pnj()
                 return True
             else:
-                print("Mr_Blue : 'Non. Ce n'est pas le bon drapeau.'")
-                game.wrong_flags += 1
-                if game.wrong_flags >= 3:
-                    print("\n" + "!"*50)
-                    print("💀 GAME OVER : ERREUR DIPLOMATIQUE !")
-                    print("Vous avez trop offensé les ambassadeurs.")
-                    print("La sécurité vous escorte hors de la Tour Eiffel.")
-                    print("!"*50)
-                    game.finished = True # 🚨 C'est cette ligne qui arrête le jeu
-                    return False
-                else:
-                    print(f"⚠️ Attention : {3 - game.wrong_flags} essais restants avant l'expulsion.")
-                return False
+                return Actions._handle_wrong_flag(game)
 
-# ÉCHANGE 1 : Glaçons au Barman
-        if target == "barman" and item_name == "glaçons":
-            player.inventaire.remove(item_to_give)
-    # Tu dois créer l'objet physiquement ici
-            from item import Item
-            recompense = Item("bouteille", "Une bouteille d'élixir rare.", 0.5)
-            player.inventaire.append(recompense)
+        # ÉCHANGES NIVEAU 4 (Barman et Chef)
+        elif target == "barman" and item_name == "glaçons":
             print("\n🧊 Barman : 'Parfait ! Voici votre bouteille d'élixir.'")
-            return True
-
-# ÉCHANGE 2 : Bouteille au Chef
-        if target == "chef" and item_name == "bouteille":
             player.inventaire.remove(item_to_give)
             from item import Item
-            recompense = Item("plat", "Le plat signature du chef.", 0.8)
-            player.inventaire.append(recompense)
-            print("\n🍳 Chef : 'Magnifique ! Voici le plat à poser au Restaurant !'")
+            player.inventaire.append(Item("bouteille", "Une bouteille d'élixir rare.", 0.5))
             return True
-        # Si le joueur essaie de donner le plat mais qu'il n'y a pas de PNJ
-        if item_name == "plat" and not room.characters:
-            print("\nIl n'y a personne à qui donner ce plat. Peut-être devriez-vous simplement le poser sur la table réservée ?")
-            return False
+
+        elif target == "chef" and item_name == "bouteille":
+            print("\n🍳 Chef : 'Magnifique ! Voici le plat à poser au Restaurant !'")
+            player.inventaire.remove(item_to_give)
+            from item import Item
+            player.inventaire.append(Item("plat", "Le plat signature du chef.", 0.8))
+            return True
+
+        print(f"{target.capitalize()} ne semble pas intéressé par cet objet.")
+        return False
+
+    @staticmethod
+    def _handle_wrong_flag(game):
+        """Méthode interne pour gérer les erreurs de drapeaux"""
+        print("Ambassadeur : 'Non. Ce n'est pas le bon drapeau.'")
+        game.wrong_flags += 1
+        if game.wrong_flags >= 3:
+            print("\n" + "!"*50 + "\n💀 GAME OVER : ERREUR DIPLOMATIQUE !\n" + "!"*50)
+            game.finished = True
+        else:
+            print(f"⚠️ Attention : {3 - game.wrong_flags} essais restants.")
+        return False
 
     
     #GIVE
@@ -800,7 +771,7 @@ class Actions:
         # Show all rewards
         game.player.show_rewards()
         return True
-    @staticmethod
+   
     @staticmethod
     def colors(game, list_of_words, number_of_parameters):
         """
@@ -869,7 +840,7 @@ class Actions:
             print("!"*50)
             game.finished = True
             
-        return True
+        return True 
     
     @staticmethod
     def unlock(game, list_of_words, number_of_parameters):
