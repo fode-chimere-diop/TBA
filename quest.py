@@ -552,7 +552,6 @@ class QuestManager:
 
                 # --- 1. CAS : DONNER (Boulanger, Garde, Ambassadeurs) ---
                 if action == "donner" and item is not None:
-                    # On vérifie si le nom de l'objet est dans l'objectif (ex: "tournevis" dans "donner tournevis")
                     if item.nom.lower() in obj_text:
                         quest.complete_objective(objective, self.player)
 
@@ -564,6 +563,11 @@ class QuestManager:
                 elif action == "poser" and "poser plat" in obj_text:
                     if item and item.nom.lower() == "plat" and target == "restaurant":
                         quest.complete_objective(objective, self.player)
+
+                # --- 4. CAS : COLORS (Mini-jeu Niveau 3) ---
+                # On vérifie si l'action est 'colors' et si le mot est dans l'objectif
+                elif action == "colors" and "colors" in obj_text:
+                    quest.complete_objective(objective, self.player)
 
             # Une fois les objectifs vérifiés, on nettoie la liste si la quête est finie
             if quest.is_completed:

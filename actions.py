@@ -353,39 +353,45 @@ class Actions:
 
         for name, character in room.characters.items():
             if name.lower() == target:
-                # On valide l'objectif "parler" dans le QuestManager (si besoin)
+                # On valide l'objectif "parler" dans le QuestManager
                 game.player.quest_manager.check_action_objectives("parler", character.name)
 
-                # Dialogue du GARDE (Indice seulement)
+                # --- 🎯 NIVEAU 3 : ACTIVATION DU JEU DES COULEURS ---
+                if character.name.lower() == "couleurs":
+                    # Cette ligne déclenche l'affichage de la quête sur ton écran
+                    game.player.quest_manager.activate_quest("Le Maître des Couleurs")
+                    character.get_msg()
+                    return True
+
+                # --- NIVEAU 1 : GARDE ET BOULANGER ---
                 if character.name.lower() == "garde":
                     print("\nGarde : 'Halte ! Je ne laisse passer personne sans une autorisation... ou un bon éclair au chocolat.'")
                     return True
 
-                # Dialogue du BOULANGER (Indice seulement)
                 elif character.name.lower() == "boulanger":
                     if game.machine_reparee:
                         print("\nBoulanger : 'Merci encore pour votre aide ! Mes éclairs sont à votre disposition.'")
                     else:
                         print("\nBoulanger : 'Quelle catastrophe... Ma machine est en panne. Il me faudrait un tournevis pour la réparer.'")
                     return True
-                # Dialogue des autres PNJ avec énigmes (niveau 2)
-                #dialogue Mr_red
+
+                # --- NIVEAU 2 : AMBASSADEURS ---
                 if character.name.lower() == "mr_red":
                     game.mr_red_enigme_donnee = True
                     character.get_msg()
                     return True
-                #dialogue  Mr White
+                
                 if character.name.lower() == "mr_white":
                     game.mr_white_enigme_donnee = True
                     character.get_msg()
                     return True
-                #dialogue Mr blue
+                
                 if character.name.lower() == "mr_blue":
                     game.mr_blue_enigme_donnee = True
                     character.get_msg()
                     return True
 
-                # Autres PNJ (messages en boucle)
+                # Autres PNJ (messages en boucle : barman, chef, etc.)
                 character.get_msg()
                 return True 
 
@@ -400,19 +406,17 @@ class Actions:
         """
         if len(list_of_words) != 3:
             print("Utilisation : give <objet> <personnage>")
-            return False
+            return False 
 
         item_name = list_of_words[1].lower()
         target = list_of_words[2].lower()
         player = game.player
         room = player.current_room
 
-        # 1. Vérifier que le PNJ est bien présent
         if target not in [n.lower() for n in room.characters.keys()]:
             print(f"{target} n'est pas ici.")
             return False
 
-        # 2. Chercher l'objet dans l'inventaire du joueur
         item_to_give = next((i for i in player.inventaire if i.nom.lower() == item_name), None)
 
         if item_to_give is None:
@@ -421,19 +425,22 @@ class Actions:
 
         # --- LOGIQUE DES ÉCHANGES ---
 
-        # CAS DU GARDE (L'Éclair)
+        # CAS DU GARDE (L'Éclair) - DÉBLOQUE LE NIVEAU 2
         if target == "garde" and item_name == "eclair":
             print(f"\nVous donnez l'éclair au garde.")
             print("Garde : 'Oh merci ! Il a l'air délicieux. Allez, je vous laisse passer !'")
             print("Le garde vous glisse un secret : 'Retenez bien ce chiffre pour le code final : 8'")
             
-            # ✅ On valide la quête d'abord
             player.quest_manager.check_action_objectives("donner", target, item_to_give)
             
-            # ✅ On met à jour le jeu et l'inventaire
             game.rooms[0].exits["U"] = game.hall_1
             player.inventaire.remove(item_to_give)
             game.eclair_donne_au_garde = True
+
+            # 🗡️ ACTIVATION DES QUÊTES DU NIVEAU 2 ICI
+            player.quest_manager.activate_quest("Énigme de Mr_Red")
+            player.quest_manager.activate_quest("Énigme de Mr_White")
+            player.quest_manager.activate_quest("Énigme de Mr_Blue")
             return True
 
         # CAS DU BOULANGER (Le Tournevis)
@@ -441,18 +448,16 @@ class Actions:
             print(f"\nVous donnez le tournevis au boulanger.")
             print("Boulanger : 'Merci ! Je répare la machine tout de suite. Voilà, elle fonctionne !'")
             
-            # ✅ On valide la quête d'abord
             player.quest_manager.check_action_objectives("donner", target, item_to_give)
             
             player.inventaire.remove(item_to_give)
             game.machine_reparee = True
             return True
 
-        # MR_RED — Énigme du drapeau
+        # MR_RED
         elif target == "mr_red":
             if item_name in ("drapeau_sénégal", "drapeau_senegal"):
                 print("\nMr_Red : 'Correct.'")
-                # ✅ Validation immédiate
                 player.quest_manager.check_action_objectives("donner", target, item_to_give)
                 player.inventaire.remove(item_to_give)
                 game.mr_red_enigme_resolue = True
@@ -461,11 +466,10 @@ class Actions:
             else:
                 return Actions._handle_wrong_flag(game)
 
-        # MR_WHITE — Énigme Turquie
+        # MR_WHITE
         elif target == "mr_white":
             if item_name == "drapeau_turquie":
                 print("\nMr_White : 'Exact. Tu as l'esprit vif.'")
-                # ✅ Validation immédiate
                 player.quest_manager.check_action_objectives("donner", target, item_to_give)
                 player.inventaire.remove(item_to_give)
                 game.mr_white_enigme_resolue = True
@@ -474,11 +478,10 @@ class Actions:
             else:
                 return Actions._handle_wrong_flag(game)
 
-        # MR_BLUE — Énigme Mexique
+        # MR_BLUE
         elif target == "mr_blue":
             if item_name == "drapeau_mexique":
                 print("\nMr_Blue : 'Exact. Tu as bien observé.'")
-                # ✅ Validation immédiate
                 player.quest_manager.check_action_objectives("donner", target, item_to_give)
                 player.inventaire.remove(item_to_give)
                 game.mr_blue_enigme_resolue = True
@@ -487,7 +490,7 @@ class Actions:
             else:
                 return Actions._handle_wrong_flag(game)
 
-        # ÉCHANGES NIVEAU 4 (Barman et Chef)
+        # ÉCHANGES NIVEAU 4
         elif target == "barman" and item_name == "glaçons":
             print("\n🧊 Barman : 'Parfait ! Voici votre bouteille d'élixir.'")
             player.inventaire.remove(item_to_give)
@@ -813,7 +816,7 @@ class Actions:
             if guess[i] == code[i]:
                 good += 1
 
-        # 6. Gestion des résultats (Victoire ou Défaite)
+        # 6. Gestion des résultats (Victoire)
         if good == 5:
             print("\n" + "="*50)
             print("🎉 BRAVO ! Tu as trouvé le bon ordre !")
@@ -821,10 +824,17 @@ class Actions:
             print("Le PNJ te laisse passer vers le niveau 4.")
             print("="*50 + "\n")
             
+            # ✅ VALIDATION DE LA QUÊTE : On envoie "colors" pour correspondre à l'objectif
+            game.player.quest_manager.check_action_objectives("colors", "colors")
+            game.player.move_count = 0
             # Déblocage de la sortie
             target_room = next(r for r in game.rooms if r.name == "terrasse_2")
             game.player.current_room.exits["N"] = target_room
             game.acces_niveau_4 = True
+
+            # 🗡️ ACTIVATION DE LA QUÊTE DU NIVEAU 4
+            game.player.quest_manager.activate_quest("Le Protocole du Sommet")
+            
             return True
 
         # 7. Si ce n'est pas bon, vérifier s'il reste des essais
@@ -840,7 +850,7 @@ class Actions:
             print("!"*50)
             game.finished = True
             
-        return True 
+        return True
     
     @staticmethod
     def unlock(game, list_of_words, number_of_parameters):

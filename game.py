@@ -1,5 +1,11 @@
 # Description: Game class
+# Import modules
+from pathlib import Path
+import sys
 
+# Tkinter imports for GUI
+import tkinter as tk
+from tkinter import ttk, simpledialog
 # Import modules
 from room import Room
 from player import Player
@@ -9,7 +15,7 @@ from actions import Actions
 from character import Character
 from quest import Quest
 DEBUG = False        # AJOUTÉ
-TIME_LIMIT = 20    # AJOUTÉ (temps max) # LE JEU 1
+TIME_LIMIT = 50    # AJOUTÉ (temps max) # LE JEU 1
 class Game:
 
     # Constructor
@@ -39,7 +45,7 @@ class Game:
         self.france_riddle_unlocked = False
         self.france_win = False
 
-        self.couleurs_attempts = 20  # Le joueur a 10 essais pour le Mastermind LE NIVEAU 3
+        self.couleurs_attempts = 20  # Le joueur a 20 essais pour le Mastermind LE NIVEAU 3
         self.wrong_flags = 0   # nombre de mauvaises tentatives sur les drapeaux (niveau 2) LE NIVEAU 2 
 
         # --- Mini-jeu couleurs (accès niveau 4) ---
@@ -117,50 +123,49 @@ class Game:
         
         # Setup rooms
         # Niveau 1
-        hall_0 = Room("hall_0", "dans le hall du rez-de-chaussée")
+        hall_0 = Room("hall_0", "dans le hall du rez-de-chaussée","hall_0.jpg")
         #je vais mettre le texte ici
         self.rooms.append(hall_0)
-        boulangerie = Room("boulangerie", "dans la boulangerie")
+        boulangerie = Room("boulangerie", "dans la boulangerie","boulangerie.jpg")
         #trouver une solution pour eviter trop de \n
         self.rooms.append(boulangerie)
-        salle_du_garde = Room("salle_du_garde", "dans la salle du garde")
+        salle_du_garde = Room("salle_du_garde", "dans la salle du garde","salle_du_garde.jpg")
         self.rooms.append(salle_du_garde)
-        local_technique = Room("local_technique", "dans le local technique")
+        local_technique = Room("local_technique", "dans le local technique","local_technique.jpeg")
         self.rooms.append(local_technique)
 
         # Niveau 2
-        hall_1 = Room("hall_1", "dans le Hall du premiére étage")
+        hall_1 = Room("hall_1", "dans le Hall du premiére étage","hall_1.jpg")
         self.rooms.append(hall_1)
         self.hall_1 = hall_1  # pour usage ultérieur
-        pays_1 = Room("pays_1", "dans la salle de Mr red")
+        pays_1 = Room("pays_1", "dans la salle de Mr red", "salle_Mr_red.png")
         self.rooms.append(pays_1)
-        pays_2 = Room("pays_2", "dans la salle de Mr white")
+        pays_2 = Room("pays_2", "dans la salle de Mr white", "salle_Mr_white.png")
         self.rooms.append(pays_2)
-        pays_3 = Room("pays_3", "dans la salle de Mr blue")
+        pays_3 = Room("pays_3", "dans la salle de Mr blue", "salle_Mr_blue.png")
         self.rooms.append(pays_3)
 
         # Niveau 3
-        hall_2 = Room("hall_2", "dans le hall du deuxiéme étage")
+        hall_2 = Room("hall_2", "dans le hall du deuxiéme étage", "hall_2.jpg")
         self.rooms.append(hall_2)
         self.hall_2 = hall_2
-        terrasse_1 = Room("terrasse_1","dans la premiére terrasse")     
+        terrasse_1 = Room("terrasse_1","dans la premiére terrasse", "terrasse_1.jpeg")     
         self.rooms.append(terrasse_1)  
 
         # Niveau 4
-        terrasse_2 = Room("terrasse_2", "une terrasse venteuse. Une inscription sur une table attire votre regard : 'Le Barman a soif de froid, le Chef a soif d'élixir.'")
+        terrasse_2 = Room("terrasse_2", "une terrasse venteuse. Une inscription sur une table attire votre regard : 'Le Barman a soif de froid, le Chef a soif d'élixir.'", "terrasse_2.jpeg")
         self.rooms.append(terrasse_2)
         # Dans game.py
-        restaurant = Room("restaurant", "un restaurant luxueux. Une table numérotée '4' est dressée au centre, elle semble attendre qu'on y dépose le plat signature du Chef.")
+        restaurant = Room("restaurant", "un restaurant luxueux. Une table numérotée '4' est dressée au centre, elle semble attendre qu'on y dépose le plat signature du Chef.", "restaurant.jpg")
         self.rooms.append(restaurant)
-        bar = Room("bar","dans le bar")
+        bar = Room("bar","dans le bar","bar.jpg")
         self.rooms.append(bar)
-        cuisine = Room("cuisine","dans la cuisine")
+        cuisine = Room("cuisine","dans la cuisine", "cuisine.jpg")
         self.rooms.append(cuisine)
 
 
         # Niveau 5
-        # Niveau 5
-        salle_secréte = Room("salle_secréte", "le sommet de la Tour. Le vent siffle entre les poutres. Au centre, un coffre massif en fer forgé semble attendre un code historique pour libérer son trésor.")
+        salle_secréte = Room("salle_secréte", "le sommet de la Tour. Le vent siffle entre les poutres. Au centre, un coffre massif en fer forgé semble attendre un code historique pour libérer son trésor.","salle_secrete.pnj")
         self.rooms.append(salle_secréte)
 
         # Create exits for rooms
@@ -182,10 +187,11 @@ class Game:
         restaurant.exits = {"N" :cuisine ,"E" : terrasse_2, "S" : None, "O" : bar, "U" : None}
         bar.exits = {"N" :None ,"E" : restaurant, "S" : None, "O" : None, "U" : None}
         cuisine.exits = {"N" :None ,"E" : None, "S" : restaurant, "O" : None, "U" : None}
+
         salle_secréte.exits = {"N" :None ,"E" : None, "S" : None, "O" : None, "U" : None}
 
         #ON DÉFINIT ICI la salle de départ du joueur 
-        self.start_room = salle_secréte      
+        self.start_room = hall_0 
         #inventaire 
         #niveau 1
         eclair = Item("eclair", "un délicieux éclair au chocolat",0.12)
@@ -292,13 +298,13 @@ class Game:
         self.escape_4 = Quest("Le Protocole du Sommet", "Récupérez les glaçons en cuisine, échangez-les au bar, puis apportez le plat au restaurant.", ["poser plat restaurant"], "Chiffre : 4")
         self.player.quest_manager.add_quest(self.escape_4)
 
+        # 1. Création de la quête Niveau 3
+        self.quete_mastermind = Quest("Le Maître des Couleurs", "Synchronisez les projecteurs de la Tour.", ["colors r b j v o"], "Chiffre : 8")
+        self.player.quest_manager.add_quest(self.quete_mastermind)
+
         self.quete_finale = Quest("Le Secret du Sommet", "Trouvez la combinaison historique du coffre pour gagner.", ["unlock 1887"], "Croissant d'Or")
         self.player.quest_manager.add_quest(self.quete_finale)
         # Elle s'activera automatiquement quand le joueur atteindra le 5ème étage
-        self.player.quest_manager.activate_quest("Énigme de Mr_Red")
-        self.player.quest_manager.activate_quest("Énigme de Mr_White")
-        self.player.quest_manager.activate_quest("Énigme de Mr_Blue")
-        self.player.quest_manager.activate_quest("Le Protocole du Sommet")
     
 
     def play(self):
@@ -335,6 +341,7 @@ class Game:
             print("\n🏆 BRAVO ! Tu as trouvé la bonne réponse : FRANCE")
             print("🎉 Tu remportes le CHIFFRE 8!")
             self.hall_1.exits["U"] = self.hall_2
+            self.player.quest_manager.activate_quest("Le Maître des Couleurs")
             return
         if command_string.strip() == "":
            return
@@ -461,7 +468,7 @@ class Game:
         # 3. Test de défaite pour le Niveau 4
         elif current_room_name in niveau_4:
             # Limite globale pour le niveau 4 (ex: 50 pas car c'est plus long)
-            if self.player.move_count >= 20:
+            if self.player.move_count >= 25:
                 print("\n" + "!"*40)
                 print("⏰ TEMPS ÉCOULÉ - NIVEAU 4")
                 print("Le service au restaurant est terminé.")
@@ -546,11 +553,91 @@ class Game:
         self.player.current_room = self.start_room
 
         print(self.player.current_room.get_long_description())
+class _StdoutRedirector:
+    """Redirect sys.stdout writes into a Tkinter Text widget."""
+    def __init__(self, text_widget):
+        self.text_widget = text_widget
+
+    def write(self, msg):
+        """Write message to the Text widget."""
+        if msg:
+            self.text_widget.configure(state="normal")
+            self.text_widget.insert("end", msg)
+            self.text_widget.see("end")
+            self.text_widget.configure(state="disabled")
+
+    def flush(self):
+        """Flush method required by sys.stdout interface (no-op for Text widget)."""
+class GameGUI(tk.Tk):
+    """Tkinter GUI for the text-based adventure game.
+
+    Layout layers:
+    L3 (top): Split into left image area (600x400) and right buttons.
+    L2 (middle): Scrolling terminal output.
+    L1 (bottom): Command entry field.
+    """
+
+    IMAGE_WIDTH = 600
+    IMAGE_HEIGHT = 400
+
+    def __init__(self):
+        super().__init__()
+        self.title("TBA")
+        self.geometry("900x700")  # Provide enough space
+        self.minsize(900, 650)
+
+        # Underlying game logic instance
+        self.game = Game()
+
+        # Ask player name via dialog (fallback to 'Joueur')
+        name = simpledialog.askstring("Nom", "Entrez votre nom:", parent=self)
+        if not name:
+            name = "Joueur"
+        self.game.setup(player_name=name)  # Pass name to avoid double prompt
+
+        # Build UI layers
+        self._build_layout()
+
+        # Redirect stdout so game prints appear in terminal output area
+        self.original_stdout = sys.stdout
+        sys.stdout = _StdoutRedirector(self.text_output)
+
+        # Print welcome text in GUI
+        self.game.print_welcome()
+
+        # Load initial room image
+        self._update_room_image()
+
+        # Handle window close
+        self.protocol("WM_DELETE_WINDOW", self._on_close)
 
 
+    # -------- Layout construction --------
+    def _build_layout(self):
+        # Configure root grid: 3 rows (L3, L2, L1)
+        self.grid_rowconfigure(0, weight=0)  # Image/buttons fixed height
+        self.grid_rowconfigure(1, weight=1)  # Terminal output expands
+        self.grid_rowconfigure(2, weight=0)  # Entry fixed
+        self.grid_columnconfigure(0, weight=1)
 
+# Move main() outside of the GameGUI class
 def main():
-    Game().play()
+    """Entry point.
+    If '--cli' is passed as an argument, start the classic console version.
+    Otherwise launch the Tkinter GUI.
+    Fallback to CLI if GUI cannot be initialized (e.g., headless environment).
+    """
+    args = sys.argv[1:]
+    if '--cli' in args:
+        Game().play()
+        return
+    try:
+        app = GameGUI()
+        app.mainloop()
+    except tk.TclError as e:
+        # Fallback to CLI if GUI fails (e.g., no DISPLAY, Tkinter not available)
+        print(f"GUI indisponible ({e}). Passage en mode console.")
+        Game().play()
     
 
 if __name__ == "__main__":
