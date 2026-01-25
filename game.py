@@ -165,7 +165,7 @@ class Game:
 
 
         # Niveau 5
-        salle_secréte = Room("salle_secréte", "le sommet de la Tour. Le vent siffle entre les poutres. Au centre, un coffre massif en fer forgé semble attendre un code historique pour libérer son trésor.","salle_secrete.pnj")
+        salle_secréte = Room("salle_secréte", "le sommet de la Tour. Le vent siffle entre les poutres. Au centre, un coffre massif en fer forgé semble attendre un code historique pour libérer son trésor.","salle_secrete.png")
         self.rooms.append(salle_secréte)
 
         # Create exits for rooms
@@ -446,37 +446,57 @@ class Game:
 
     def loose(self):
         """
-        Gère la défaite par le temps (nombre de pas) uniquement pour les niveaux 1 et 4.
+        Gère la défaite par le temps ou par erreur de code sans arrêter le jeu.
+        Le joueur recommence au début du niveau actuel ou du précédent.
         """
-        # 1. On définit les zones où le chrono est actif (Niveaux 1 et 4)
         niveau_1 = ["hall_0", "boulangerie", "local_technique", "salle_du_garde"]
         niveau_4 = ["terrasse_2", "bar", "cuisine", "restaurant"]
         
         current_room_name = self.player.current_room.name
 
-        # 2. Test de défaite pour le Niveau 1
+        # --- RE-ESSAYER LE NIVEAU 1 ---
         if current_room_name in niveau_1:
-            # Limite pour le niveau 1 (ex: 20 pas)
             if self.player.move_count >= 20:
                 print("\n" + "!"*40)
                 print("⏰ TEMPS ÉCOULÉ - NIVEAU 1")
-                print("Le garde s'est endormi et la boulangerie a fermé.")
-                print("Vous avez mis trop de temps à réparer la machine !")
+                print("La boulangerie ferme... On recommence au Hall !")
                 print("!"*40)
-                return True
+                
+                self.player.move_count = 0
+                self.player.current_room = next(r for r in self.rooms if r.name == "hall_0")
+                print(self.player.current_room.get_long_description())
+                return False 
 
-        # 3. Test de défaite pour le Niveau 4
+        # --- RE-ESSAYER LE NIVEAU 4 ---
         elif current_room_name in niveau_4:
-            # Limite globale pour le niveau 4 (ex: 50 pas car c'est plus long)
             if self.player.move_count >= 25:
                 print("\n" + "!"*40)
                 print("⏰ TEMPS ÉCOULÉ - NIVEAU 4")
-                print("Le service au restaurant est terminé.")
-                print("Vous avez mis trop d'allers-retours pour le protocole !")
+                print("Le service est fini... On recommence à la terrasse !")
                 print("!"*40)
-                return True
+                
+                self.player.move_count = 0
+                self.player.current_room = next(r for r in self.rooms if r.name == "terrasse_2")
+                print(self.player.current_room.get_long_description())
+                return False 
 
-        # Dans les autres niveaux (2, 3, 5), on ne perd pas par move_count
+        # --- NOUVEAU : RE-ESSAYER LE NIVEAU 5 (Le Coffre) ---
+        elif current_room_name == "salle_secréte":
+            # Si le joueur a épuisé ses 5 tentatives de code
+            if self.unlock_attempts <= 0:
+                print("\n" + "!"*40)
+                print("🚨 ALARME - SYSTÈME DE SÉCURITÉ")
+                print("Le coffre s'est verrouillé magnétiquement !")
+                print("Vous devez redescendre au Restaurant pour vous calmer.")
+                print("!"*40)
+                
+                # On réinitialise les essais pour la prochaine fois
+                self.unlock_attempts = 5
+                # Téléportation au niveau 4 (Restaurant)
+                self.player.current_room = next(r for r in self.rooms if r.name == "restaurant")
+                print(self.player.current_room.get_long_description())
+                return False
+
         return False
    
 

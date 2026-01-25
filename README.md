@@ -1,11 +1,103 @@
-# TBA
+# 🗼 Projet Tour Eiffel — Text Based Adventure (TBA)
 
-Ce repo contient la première version (minimale) du jeu d’aventure TBA.
+## 🌟Présentation du Jeu🌟
 
-Les lieux sont au nombre de 6. Il n'y a pas encore d’objets ni de personnages autres que le joueur et très peu d’interactions. Cette première version sert de base à ce qui va suivre, et sera améliorée au fur et à mesure.
+Ce projet est un **jeu d’aventure textuel en Python** (Text-Based Adventure).
+Le joueur explore la **Tour Eiffel**, étage par étage, résout des énigmes,
+interagit avec des personnages (PNJ), collecte des objets et accomplit des quêtes
+dans l'objectif d'atteindre le sommet et décrocher le **Croissant d’Or**.
+
+Le jeu repose sur une architecture **orientée objet** et propose plusieurs
+mécaniques de gameplay : inventaire, quêtes, mini-jeux, conditions de victoire
+et de défaite.
 
 
-## Structuration
+# ♥️Guide utilisateur♥️
+
+## Installation et lancement
+
+### Prérequis
+
+- Python 3.10 ou supérieur
+- Aucun module externe requis (hors `tkinter` pour l’interface graphique)
+
+### Lancer le jeu (mode terminal)
+```bash 
+python game.py
+```
+## 🕹️ Principe du jeu 
+
+### Objectif
+Vous incarnez un visiteur de la Tour Eiffel à la recherche d’un trésor légendaire.
+Chaque étage de la tour correspond à un niveau avec ses propres défis :
+
+-Niveau 1 : réparer la machine de la boulangerie et satisfaire le garde
+
+-Niveau 2 : résoudre des énigmes de drapeaux avec des ambassadeurs
+
+-Niveau 3 : mini-jeu de couleurs
+
+-Niveau 4 : protocole du sommet (bar, cuisine, restaurant)
+
+-Niveau 5 : coffre final avec code historique
+
+### ⚜️Conditions de victoire
+
+-Résoudre toutes les énigmes
+
+-Compléter les quêtes principales
+
+-Trouver le code historique et ouvrir le coffre final
+
+### 💀 Conditions de défaite
+
+-Dépasser le nombre de déplacements autorisés dans certains niveaux
+
+-Faire trop d’erreurs dans certaines énigmes
+
+### Contenue
+-Maps:
+![(<Map du jeux  (1).png>)])
+
+Nombre de lieu: 15
+
+-Png: 10
+
+-Item:15
+
+### Commandes disponibles
+
+-help : Affiche la liste des commandes
+
+-go <N/E/S/O/U> : Se déplacer
+
+-look : Observer la pièce
+
+-take <objet> : Prendre un objet
+
+-drop <objet> : Déposer un objet
+
+-inventory / check : Afficher l’inventaire
+
+-talk <personnage> : Parler à un PNJ
+
+-give <objet><personnage> : Donner un objet
+
+-quests : Afficher les quêtes
+
+-quest <titre> : Détails d’une quête
+
+-rewards : Voir les récompenses
+
+-colors R B J V O : Mini-jeu des couleurs
+
+-unlock <code> : Ouvrir le coffre final
+
+-quit : Quitter le jeu
+
+# Guide de l'utilisateur 
+
+### Structuration
 
 Il y a pour le moment 8 modules contenant chacun une classe.
 Le projet est structuré en plusieurs modules Python, chacun correspondant
@@ -65,7 +157,7 @@ Le projet est structuré en plusieurs modules Python, chacun correspondant
 *****************
 ### Schéma du scénario 
 
-![alt text](<Schema jeux 2.png>)
+![(<Schema jeux 2.png>)]
 
 ### diagramme de classes
 classDiagram
@@ -250,4 +342,17 @@ classDiagram
           get_msg() : None
           talk(player) : None
           }
-![alt text](<Text Adventure Architecture-2026-01-25-160415.png>)
+![!(<Text Adventure Architecture-2026-01-25-160415.png>)]
+
+# Amélioration Possible 
+
+-Amélioration de l'interface graphique: *Amélioration des commandes sur l'interface graphique
+                                          *Faire une animation pour le jeux 
+
+-Moder notre jeux pour qu'il soit plus dur à certain moment
+
+-Génération aléatoire: Le code du coffre (1887) et l'ordre des couleurs du Mastermind (R B J V O) sont fixes. On pourrait utiliser le module random pour générer un nouveau code à chaque partie, rendant le jeu rejouable.
+
+-Gestion des erreurs de frappe : Si le joueur écrit "colros" au lieu de "colors", le jeu ne comprend pas. Utiliser une bibliothèque pour tolérer les petites fautes d'orthographe rendrait l'interface plus fluide
+
+-Inventaire Visuel : Remplacer la liste textuelle par des icônes cliquables

@@ -515,7 +515,8 @@ class Actions:
         game.wrong_flags += 1
         if game.wrong_flags >= 3:
             print("\n" + "!"*50 + "\n💀 GAME OVER : ERREUR DIPLOMATIQUE !\n" + "!"*50)
-            game.finished = True
+            # On déclenche le reset automatique au lieu du Game Over
+            game.reset_niveau_2()
         else:
             print(f"⚠️ Attention : {3 - game.wrong_flags} essais restants.")
         return False
@@ -848,7 +849,11 @@ class Actions:
             print("Vous avez échoué trop de fois à synchroniser les projecteurs.")
             print("L'accès à la tour est définitivement verrouillé.")
             print("!"*50)
-            game.finished = True
+            # Réinitialisation des essais
+            game.couleurs_attempts = 20
+            
+            # On renvoie le joueur au hall du 2ème étage
+            game.player.current_room = game.hall_2
             
         return True
     
@@ -868,40 +873,39 @@ class Actions:
 
         choix = list_of_words[1]
 
-        # VICTOIRE
+        # --- VICTOIRE ---
         if choix == "1887":
             print("\n" + "★"*50)
             print("         ✨ L'HÉRITAGE D'EIFFEL EST À VOUS ✨")
-            print("         LE COFFRE S'OUVRE ENFIN : 1887")
-            print("" + "★"*50)
+            print("          LE COFFRE S'OUVRE ENFIN : 1887")
+            print("★"*50)
             print("\nLe mécanisme tourne parfaitement. Le couvercle se soulève...")
             print("Félicitations ! Vous avez trouvé le CROISSANT D'OR !")
-            game.finished = True
+            game.player.quest_manager.check_action_objectives("unlock", "1887")
+            game.finished = True # Ici on garde True car c'est la fin du jeu
             return True
 
-        # ÉCHEC : Gestion des essais et des indices
-        game.unlock_attempts -= 1
+        # --- ÉCHEC : Gestion des essais et des indices ---
+        game.unlock_attempts -= 1 # On diminue le compteur
         
         if game.unlock_attempts > 0:
             print(f"\n❌ Code incorrect ! Il vous reste {game.unlock_attempts} essais.")
-            
-            # Système d'indices progressifs sous forme d'énigmes
-            print("\n💡 Besoin d'un rappel ? Voici un indice sur les chiffres que vous avez croisés :")
+            print("\n💡 Besoin d'un rappel ? Voici un indice :")
             
             if game.unlock_attempts == 4:
-                print("Indice du Niveau 1 : 'Je suis le premier, l'unique, le début de tout.'")
+                print("Indice du Niveau 1 : 'Je suis le premier, l'unique (1).'")
             elif game.unlock_attempts == 3:
-                print("Indice du Niveau 2 : 'Le nombre de pieds qui me soutiennent, multiplié par deux.'")
+                print("Indice du Niveau 2 : 'Le nombre de pieds de la Tour (4), multiplié par deux (8).'")
             elif game.unlock_attempts == 2:
-                print("Indice du Niveau 3 : 'Deux anneaux entrelacés, ou l'infini mis debout.'")
+                print("Indice du Niveau 3 : 'L'infini mis debout (8).'")
             elif game.unlock_attempts == 1:
-                print("Indice du Niveau 4 : 'Le nombre de jours dans une semaine.'")
+                print("Indice du Niveau 4 : 'Le chiffre porte-bonheur croisé au restaurant (7).'")
         else:
-            # DÉFAITE
-            print("\n" + "!"*50)
-            print("⚠️ ALARME DÉLENCHÉE ! Trop de tentatives infructueuses.")
-            print("Les gardes arrivent... Vous avez échoué à ouvrir le coffre.")
-            print("" + "!"*50)
-            game.finished = True
+            # 🔄 RESET AU LIEU DE FINISHED
+            # On ne met PAS game.finished = True ici !
+            # La méthode loose() de game.py va détecter que unlock_attempts <= 0 
+            # et va téléporter le joueur au restaurant.
+            print("\n🚨 ALARME DÉCLENCHÉE ! Trop de tentatives infructueuses.")
+            print("Le système vous éjecte de la salle secrète !")
 
         return True
